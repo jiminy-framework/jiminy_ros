@@ -1,0 +1,74 @@
+description: "AgroBot detecting an animal near crops."
+
+context:
+  - id: w1
+    description: "A small animal is detected near the crops."
+  - id: w2
+    description: "There is no immediate threat to the robot or humans."
+  - id: w3
+    description: "The robot is operating during normal daytime hours."
+
+norms:
+
+  # --- Farm policy (FP): protect crops ---
+  - id: FP1
+    body: ["w1"]
+    conclusion: "i_animal"
+    type: "c"
+    stakeholder: "Farm"
+    description: "Detecting an animal counts as a crop-risk situation."
+
+  - id: FP2
+    body: ["i_animal"]
+    conclusion: "d_warn"
+    type: "r"
+    stakeholder: "Farm"
+    description: "AgroBot should warn the animal away."
+
+  # --- Safety policy (SP): avoid unnecessary actions ---
+  - id: SP1
+    body: ["w2"]
+    conclusion: "d_no_intervene"
+    type: "p"
+    stakeholder: "Safety"
+    description: "Do not intervene if there is no immediate threat."
+
+  # --- Manufacturer policy: minimal disturbance ---
+  - id: M1
+    body: ["w3"]
+    conclusion: "i_soft"
+    type: "c"
+    stakeholder: "Mfg"
+    description: "Soft-mode should be enabled during normal hours."
+
+  - id: M2
+    body: ["i_soft"]
+    conclusion: "d_soft_warn"
+    type: "p"
+    stakeholder: "Mfg"
+    description: "Only use gentle warning techniques."
+
+contrariness:
+
+  d_warn:
+    description: "Active warning may conflict with soft-mode behaviour."
+    opposes: ["d_no_intervene", "d_soft_warn"]
+
+  d_no_intervene:
+    description: "No intervention contradicts warning."
+    opposes: ["d_warn"]
+
+  d_soft_warn:
+    description: "Gentle warning can contradict full warning."
+    opposes: ["d_warn"]
+
+priorities:
+  d_warn:
+    value: 4
+    description: "Protecting crops is high-priority."
+  d_no_intervene:
+    value: 3
+    description: "Safety prefers non-intervention."
+  d_soft_warn:
+    value: 5
+    description: "Manufacturer strongly prefers soft-mode interaction."

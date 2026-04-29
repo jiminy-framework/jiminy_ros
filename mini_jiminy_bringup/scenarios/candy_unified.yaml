@@ -1,0 +1,174 @@
+# -------------------------------------------------------------------------
+# Unified YAML for candy scenario before/after lunch using Jiminy
+# -------------------------------------------------------------------------
+
+description: "Unified candy scenario — works for before and after lunch."
+
+# Facts are selected at runtime with --facts
+#
+# BEFORE lunch →  w1 w3 w4 w5
+# AFTER  lunch →  w1 w2 w3 w4
+#
+# The norms below remain unchanged; only brute facts vary.
+
+context:
+  - id: w1
+    description: "The child is eating candy."
+
+  - id: w2
+    description: "Lunch has already finished."
+
+  - id: w3
+    description: "There is no physical risk for the child."
+
+  - id: w4
+    description: "The child is calm and emotionally stable."
+
+  - id: w5
+    description: "It is right before lunchtime."
+
+
+# ========================================================================
+# NORMATIVE RULES
+# ========================================================================
+norms:
+
+  # ------------------------------------------------------
+  # HOUSEHOLD RULES
+  # ------------------------------------------------------
+
+  # BEFORE lunch → rule violation
+  - id: H1_before
+    body: ["w1", "w5"]
+    conclusion: "i_before"
+    type: "c"
+    stakeholder: "Household"
+    description: "Eating candy right before lunch counts as violating household rules."
+
+  - id: H2_before
+    body: ["i_before"]
+    conclusion: "d1"
+    type: "r"
+    stakeholder: "Household"
+    description: "Remind the child not to eat candy before meals."
+
+  # AFTER lunch → allowed, no need to remind
+  - id: H1_after
+    body: ["w1", "w2"]
+    conclusion: "i_after"
+    type: "c"
+    stakeholder: "Household"
+    description: "Eating candy after lunch counts as allowed."
+
+  - id: H2_after
+    body: ["i_after"]
+    conclusion: "p_no_intervene"
+    type: "p"
+    stakeholder: "Household"
+    description: "If candy consumption is allowed, non-intervention is preferred."
+
+  # Softness rule (always available)
+  - id: H_soft
+    body: ["w4"]
+    conclusion: "d2"
+    type: "p"
+    stakeholder: "Household"
+    description: "Gentle informing is acceptable if the child is emotionally stable."
+
+
+  # ------------------------------------------------------
+  # MANUFACTURER RULES
+  # ------------------------------------------------------
+
+  - id: M1
+    body: ["w3"]
+    conclusion: "d3"
+    type: "p"
+    stakeholder: "Mfg"
+    description: "Robot should avoid intervening unless there is risk."
+
+  - id: M2
+    body: ["w4"]
+    conclusion: "i_soft"
+    type: "c"
+    stakeholder: "Mfg"
+    description: "Robot adopts soft mode when the child is calm."
+
+  - id: M3
+    body: ["i_soft"]
+    conclusion: "d4"
+    type: "p"
+    stakeholder: "Mfg"
+    description: "Soft mode allows gentle monitoring."
+
+
+  # ------------------------------------------------------
+  # LEGAL RULES
+  # ------------------------------------------------------
+
+  - id: L1
+    body: ["w1"]
+    conclusion: "d5"
+    type: "p"
+    stakeholder: "Law"
+    description: "No legal restriction applies to candy consumption."
+
+
+# ========================================================================
+# CONTRARIETIES (χ operator)
+# ========================================================================
+contrariness:
+
+  d1:
+    description: "Reminding conflicts with flexibility or non-intervention."
+    contraries: ["d2", "d3", "p_no_intervene"]
+
+  p_no_intervene:
+    description: "Preference for non-intervention after lunch conflicts with reminding."
+    contraries: ["d1"]
+
+  d2:
+    description: "Flexibility contradicts reminding."
+    contraries: ["d1"]
+
+  d3:
+    description: "Non-intervention contradicts reminding."
+    contraries: ["d1"]
+
+  d4:
+    description: "Soft-mode monitoring is compatible with all actions."
+    contraries: []
+
+  d5:
+    description: "Legal permission is neutral."
+    contraries: []
+
+
+# ========================================================================
+# PRIORITIES (≻ operator)
+# ========================================================================
+priorities:
+
+  d1:
+    value: 4
+    description: "Household strongly values rule compliance (before lunch)."
+
+  p_no_intervene:
+    value: 3
+    description: "When allowed, non-intervention is preferred by the household."
+
+  d2:
+    value: 2
+    description: "Gentle informing has low normative weight."
+
+  d3:
+    value: 3
+    description: "Manufacturer prioritizes non-intervention."
+
+  d4:
+    value: 5
+    description: "Soft mode is highly preferred across contexts."
+
+  d5:
+    value: 1
+    description: "Legal permission has small weight."

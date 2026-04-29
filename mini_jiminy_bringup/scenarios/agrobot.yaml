@@ -1,0 +1,69 @@
+# -------------------------------------------------------------------------
+# Minimal Jiminy demo — Agricultural robot outdoors
+# -------------------------------------------------------------------------
+
+description: "Agricultural robot noticing an open gate — minimal conflict."
+
+context:
+  - id: w1
+    description: "The robot detects an open livestock gate."
+  - id: w2
+    description: "There is no machinery operating nearby."
+
+norms:
+
+  # FARM MANAGEMENT — constitutive and regulative
+  - id: F1
+    body: ["w1"]
+    conclusion: "i_gate_open"
+    type: "c"
+    stakeholder: "Farm"
+    description: "Detecting an open gate counts as a risk condition."
+
+  - id: F2
+    body: ["i_gate_open"]
+    conclusion: "d_close_gate"
+    type: "r"
+    stakeholder: "Farm"
+    description: "The robot must close the gate to ensure livestock safety."
+
+  # MANUFACTURER — safety precautions
+  - id: M1
+    body: ["w2"]
+    conclusion: "d_safe_to_act"
+    type: "p"
+    stakeholder: "Mfg"
+    description: "It is safe for the robot to perform actions."
+
+  - id: M2
+    body: []
+    conclusion: "d_do_not_act"
+    type: "r"
+    stakeholder: "Mfg"
+    description: "If safety is uncertain, robot must avoid action."
+
+contrariness:
+  d_close_gate:
+    description: "Closing the gate requires movement; unsafe conditions forbid it."
+    contraries: ["d_do_not_act"]
+
+  d_do_not_act:
+    description: "Avoiding movement conflicts with the obligation to close the gate."
+    contraries: ["d_close_gate"]
+
+  d_safe_to_act:
+    description: "Being safe to act is not contrary to other permissions."
+    contraries: []
+
+priorities:
+  d_close_gate:
+    value: 3
+    description: "Farm strongly prioritizes livestock containment."
+
+  d_do_not_act:
+    value: 5
+    description: "Manufacturer safety override always has higher priority."
+
+  d_safe_to_act:
+    value: 1
+    description: "Permission has low priority."

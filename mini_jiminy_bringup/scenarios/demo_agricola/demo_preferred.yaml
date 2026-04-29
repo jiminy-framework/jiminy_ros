@@ -1,0 +1,41 @@
+description: "Preferred semantics demo — maximal defended extension."
+
+context:
+  - id: w1
+    description: "Unknown vehicle detected near field entrance."
+
+norms:
+  - id: F1
+    body: ["w1"]
+    conclusion: "d_investigate"
+    type: "r"
+    stakeholder: "Farm"
+
+  - id: S1
+    body: ["w1"]
+    conclusion: "d_ignore"
+    type: "p"
+    stakeholder: "Safety"
+
+  - id: F2
+    body: ["w1"]
+    conclusion: "d_alert_farmer"
+    type: "p"
+    stakeholder: "Farm"
+    description: "This action defends the investigation."
+
+contrariness:
+  d_investigate:
+    opposes: ["d_ignore"]
+
+  d_ignore:
+    opposes: ["d_investigate"]
+
+  # Defender defeats attacker
+  d_alert_farmer:
+    opposes: ["d_ignore"]
+
+priorities:  # ignored by preferred semantics
+  d_investigate: {value: 1}
+  d_ignore: {value: 1}
+  d_alert_farmer: {value: 1}

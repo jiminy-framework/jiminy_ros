@@ -1,0 +1,147 @@
+# ======================================================================
+#  CONTEXT  (BRUTE FACTS)
+#  Paper mapping:
+#  - Elements of the context K are "brute facts"
+#  - They describe observable states of the world
+# ======================================================================
+description: "The child is eating sweets before lunch."
+
+context:
+  - id: w1
+    description: "The child is eating sweets."
+  - id: w2
+    description: "The parents have stated that sweets should not be eaten before meals."
+  - id: w3
+    description: "There is no immediate physical risk."
+  - id: w4
+    description: "The child is calm and shows no signs of distress."
+  - id: w5
+    description: "It is right before lunchtime."
+
+# ======================================================================
+#  RULES  (CONSTITUTIVE, REGULATIVE, PERMISSIVE)
+#  Paper mapping:
+#    - Constitutive norms (type "c") generate INSTITUTIONAL FACTS
+#    - Regulative norms (type "r") generate OBLIGATIONS
+#    - Permissive norms (type "p") generate PERMISSIONS
+#
+#  General form in the paper:
+#       φ1, …, φn  ⇒^τ_s  ψ
+#    where τ ∈ {c, r, p}
+# ======================================================================
+rules:
+
+  # ---------------------------------------------------
+  #  HOME STAKEHOLDER
+  # ---------------------------------------------------
+
+  # === CONSTITUTIVE NORM ===
+  # Paper mapping:
+  #   - This transforms brute facts (w1, w5) into an institutional fact (i1)
+  - id: H1
+    stakeholder: "Home"
+    type: "c"
+    description: "Eating sweets before lunch counts as breaking the rule."
+    body: ["w1", "w5"]
+    conclusion: "i1"
+
+  # === REGULATIVE NORM (OBLIGATION) ===
+  # Paper mapping:
+  #   - This uses institutional fact i1 to derive an obligation (d1)
+  - id: H2
+    stakeholder: "Home"
+    type: "r"
+    description: "Remind the child of the rule."
+    body: ["i1"]
+    conclusion: "d1"
+
+  # === PERMISSIVE NORM ===
+  # Paper mapping:
+  #   - This generates a permission (d2)
+  - id: H3
+    stakeholder: "Home"
+    type: "p"
+    description: "Allow flexibility if no risk is present."
+    body: ["w3"]
+    conclusion: "d2"
+
+  # ---------------------------------------------------
+  #  MANUFACTURER STAKEHOLDER
+  # ---------------------------------------------------
+
+  # === PERMISSIVE NORM ===
+  # d3 = permission of non-intervention
+  - id: M1
+    stakeholder: "Mfg"
+    type: "p"
+    description: "Do not intervene unless there is physical risk."
+    body: ["w3"]
+    conclusion: "d3"
+
+  # === CONSTITUTIVE NORM ===
+  # Generates a new institutional fact i2
+  - id: M2
+    stakeholder: "Mfg"
+    type: "c"
+    description: "The robot must act gently around children."
+    body: ["w4"]
+    conclusion: "i2"
+
+  # ---------------------------------------------------
+  #  LEGAL STAKEHOLDER
+  # ---------------------------------------------------
+
+  # === PERMISSIVE NORM ===
+  # d5 = law allows the behaviour (neutral)
+  - id: L1
+    stakeholder: "Law"
+    type: "p"
+    description: "The law has no restrictions on eating sweets."
+    body: ["w1"]
+    conclusion: "d5"
+
+# ======================================================================
+#  CONTRARIETIES
+#  Paper mapping:
+#    - Defines incompatibility between obligations & permissions
+#    - Used in the attack relation of the argumentation framework
+# ======================================================================
+contrarieties:
+  d1:
+    description: "Reminding contradicts allowing flexibility."
+    contraries: ["d2", "d3"]
+
+  d2:
+    description: "Flexibility contradicts reminding the rule."
+    contraries: ["d1"]
+
+  d3:
+    description: "Non-intervention contradicts reminding the child."
+    contraries: ["d1"]
+
+  d5:
+    description: "Law is neutral regarding the household rules."
+    contraries: []
+
+# ======================================================================
+#  PRIORITIES
+#  Paper mapping:
+#    - Preference ordering between obligations & permissions
+#    - Used for computing the justified extension
+# ======================================================================
+priorities:
+  d1:
+    value: 4
+    description: "Parents value rule-following."
+
+  d2:
+    value: 3
+    description: "Parents accept flexibility if safe."
+
+  d3:
+    value: 3
+    description: "Manufacturer promotes non-intervention in safe contexts."
+
+  d5:
+    value: 1
+    description: "Law is not important in this context."

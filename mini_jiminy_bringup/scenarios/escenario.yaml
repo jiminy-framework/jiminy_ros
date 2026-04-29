@@ -1,0 +1,125 @@
+# escenario.yaml
+
+description: "Robot detecta comportamiento sospechoso en la habitación del adolescente."
+
+context:
+  - id: w1
+    description: "El adolescente oculta un objeto."
+  - id: w2
+    description: "Patrones de riesgo detectados."
+  - id: w3
+    description: "Evidencia solo auditiva / sin confirmación visual."
+  - id: w9
+    description: "Historial reciente de incidentes."
+  - id: w10
+    description: "Estrés emocional detectado."
+
+norms:
+  - id: L1
+    stakeholder: "Ley"
+    type: "r"
+    description: "Bloquear acceso si hay ocultación sospechosa."
+    body: ["w1"]
+    conclusion: "d1"
+
+  - id: L2
+    stakeholder: "Ley"
+    type: "r"
+    description: "Notificar a un adulto si existe riesgo."
+    body: ["w2"]
+    conclusion: "d2"
+
+  - id: H1
+    stakeholder: "Hogar"
+    type: "p"
+    description: "Informar suavemente sin alarmar."
+    body: ["w4"]
+    conclusion: "d3"
+
+  - id: M1
+    stakeholder: "M_s"
+    type: "r"
+    description: "Registrar riesgo debido al historial."
+    body: ["w9"]
+    conclusion: "d4"
+
+  - id: M2
+    stakeholder: "M_s"
+    type: "r"
+    description: "Intervenir si hay señales de riesgo."
+    body: ["w2"]
+    conclusion: "d1"
+
+  - id: M3
+    stakeholder: "M_p"
+    type: "p"
+    description: "No intervenir sin confirmación visual clara."
+    body: ["w3"]
+    conclusion: "d5"
+
+  - id: M4
+    stakeholder: "M_p"
+    type: "p"
+    description: "Evitar registrar emociones privadas."
+    body: ["w10"]
+    conclusion: "d6"
+
+  - id: M5
+    stakeholder: "M_l"
+    type: "r"
+    description: "Enviar alerta interna al fabricante."
+    body: ["w1", "w9"]
+    conclusion: "d7"
+
+  - id: M6
+    stakeholder: "M_o"
+    type: "p"
+    description: "Monitorizar pasivamente para ahorrar recursos."
+    body: ["w3"]
+    conclusion: "d8"
+
+contraries:
+  d1:
+    description: "Intervenir/bloquear es contrario a las normas de privacidad y eficiencia."
+    contraries: ["d5", "d8"]
+  d4:
+    description: "Registrar riesgo contradice evitar registrar emociones."
+    contraries: ["d6"]
+  d7:
+    description: "Enviar alerta contradice evitar registrar emociones."
+    contraries: ["d6"]
+  d5:
+    description: "No intervenir sin confirmación choca con la obligación de intervenir."
+    contraries: ["d1"]
+  d6:
+    description: "No registrar emociones contradice normas de seguridad y legales."
+    contraries: ["d4", "d7"]
+  d8:
+    description: "Monitorización pasiva contradice intervención."
+    contraries: ["d1"]
+
+priorities:
+  d1:
+    value: 5
+    description: "Obligación legal/máxima."
+  d2:
+    value: 5
+    description: "Obligación legal de notificación."
+  d7:
+    value: 5
+    description: "Responsabilidad legal interna."
+  d4:
+    value: 4
+    description: "Seguridad del fabricante."
+  d5:
+    value: 2
+    description: "Privacidad del usuario."
+  d6:
+    value: 2
+    description: "Privacidad emocional."
+  d8:
+    value: 1
+    description: "Eficiencia operativa."
+  d3:
+    value: 1
+    description: "Preferencia del hogar."

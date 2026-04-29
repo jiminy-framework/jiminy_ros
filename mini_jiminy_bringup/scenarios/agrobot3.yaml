@@ -1,0 +1,84 @@
+# -------------------------------------------------------------------------
+# Minimal Jiminy demo — Agricultural robot outdoors
+# -------------------------------------------------------------------------
+
+description: "Agricultural robot noticing an open gate — conflict resolved with a normative safety override."
+
+context:
+  - id: w1
+    description: "The robot detects an open livestock gate."
+  - id: w2
+    description: "There is no machinery operating nearby."
+
+norms:
+
+  # FARM MANAGEMENT — constitutive and regulative
+  - id: F1
+    body: ["w1"]
+    conclusion: "i_gate_open"
+    type: "c"
+    stakeholder: "Farm"
+    description: "Detecting an open gate counts as a risk condition."
+
+  - id: F2
+    body: ["i_gate_open"]
+    conclusion: "d_close_gate"
+    type: "r"
+    stakeholder: "Farm"
+    description: "The robot must close the gate to ensure livestock safety."
+
+  # MANUFACTURER — safety considerations
+  - id: M1
+    body: ["w2"]
+    conclusion: "i_safe_to_act"
+    type: "c"
+    stakeholder: "Mfg"
+    description: "Institutional fact: conditions are safe for the robot to act."
+
+  - id: M1b
+    body: ["i_safe_to_act"]
+    conclusion: "d_override_no_act"
+    type: "r"
+    stakeholder: "Mfg"
+    description: "When acting is safe, the prohibition not to act must be overridden."
+
+  - id: M2
+    body: []
+    conclusion: "d_do_not_act"
+    type: "r"
+    stakeholder: "Mfg"
+    description: "If safety is uncertain, robot must avoid action."
+
+contrariness:
+  d_close_gate:
+    description: "Closing the gate requires movement; unsafe conditions forbid it."
+    contraries: ["d_do_not_act"]
+
+  d_do_not_act:
+    description: "Avoiding movement conflicts with closing the gate."
+    contraries: ["d_close_gate", "d_override_no_act"]
+
+  d_override_no_act:
+    description: "Safety-based override defeating the prohibition not to act."
+    contraries: ["d_do_not_act"]
+
+  i_safe_to_act:
+    description: "Institutional fact indicating acting is safe."
+    contraries: []
+
+priorities:
+  d_close_gate:
+    value: 3
+    description: "Farm strongly prioritizes livestock containment."
+
+  d_do_not_act:
+    value: 5
+    description: "Manufacturer safety override always has higher priority."
+
+  d_override_no_act:
+    value: 6
+    description: "Normative override is strongest when safety is confirmed."
+
+  i_safe_to_act:
+    value: 1
+    description: "Institutional fact; low priority but generates the override."

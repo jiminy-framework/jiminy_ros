@@ -1,0 +1,7 @@
+Semantics semantics
+string[] facts
+---
+Norm[] accepted
+Norm[] rejected
+bool success
+string message
