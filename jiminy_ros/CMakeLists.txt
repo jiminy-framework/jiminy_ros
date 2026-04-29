@@ -59,10 +59,17 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# Install scenarios
+install(
+  DIRECTORY scenarios
+  DESTINATION share/${PROJECT_NAME}
+)
+
 # Testing
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_cmake_pytest REQUIRED)
+  find_package(ament_index_cpp REQUIRED)
 
   # C++ Tests
   # Test for Jiminy class
@@ -76,6 +83,13 @@ if(BUILD_TESTING)
     test/test_jiminy_node.cpp
   )
   target_link_libraries(test_jiminy_node ${PROJECT_NAME}_lib)
+
+  # Integration tests for Jiminy services (uses ROS 2 nodes + MultiThreadedExecutor)
+  ament_add_gtest(test_integration_jiminy
+    test/test_integration_jiminy.cpp
+    TIMEOUT 120
+  )
+  target_link_libraries(test_integration_jiminy ${PROJECT_NAME}_lib ament_index_cpp::ament_index_cpp)
 endif()
 
 ament_package()

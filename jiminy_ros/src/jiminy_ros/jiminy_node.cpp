@@ -22,6 +22,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <fstream>
+
 #include "jiminy_msgs/msg/fact.hpp"
 #include "jiminy_msgs/msg/norm.hpp"
 #include "jiminy_msgs/msg/semantics.hpp"
@@ -188,6 +190,19 @@ std::unique_ptr<Jiminy>
 JiminyNode::load_jiminy(const std::string &config_file) {
   RCLCPP_INFO(this->get_logger(), "Loading Jiminy configuration from %s",
               config_file.c_str());
+
+  // Check if file exists and is not empty
+  if (config_file.empty()) {
+    RCLCPP_ERROR(this->get_logger(), "Config file path is empty");
+    return nullptr;
+  }
+
+  std::ifstream test_file(config_file);
+  if (!test_file.good()) {
+    RCLCPP_ERROR(this->get_logger(), "Config file not found: %s",
+                 config_file.c_str());
+    return nullptr;
+  }
 
   try {
     YAML::Node config = YAML::LoadFile(config_file);

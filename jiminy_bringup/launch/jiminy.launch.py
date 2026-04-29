@@ -34,7 +34,7 @@ def generate_launch_description():
     def run_jiminy(context: LaunchContext, config_file):
         config_file = str(context.perform_substitution(config_file))
         config_file = os.path.join(
-            get_package_share_directory("jiminy_bringup"),
+            get_package_share_directory("jiminy_ros"),
             "scenarios",
             config_file,
         )
