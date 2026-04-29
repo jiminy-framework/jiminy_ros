@@ -2,7 +2,7 @@
 
 # MIT License
 #
-# Copyright (c) 2026 Miguel Ángel González Santamarta
+# Copyright (c) 2026 Jiminy Framework
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -138,12 +138,10 @@ class JiminyServiceTester:
             workspace_root = os.path.dirname(
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             )
-            scenario_path = (
-                f"{workspace_root}/mini_jiminy_bringup/scenarios/{config_file}"
-            )
+            scenario_path = f"{workspace_root}/jiminy_bringup/scenarios/{config_file}"
 
             result = subprocess.run(
-                f"ros2 service call /load_scenario mini_jiminy_msgs/srv/LoadScenario "
+                f"ros2 service call /load_scenario jiminy_msgs/srv/LoadScenario "
                 f"\"config_file: '{scenario_path}'\" 2>&1",
                 shell=True,
                 capture_output=True,

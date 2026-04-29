@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(mini_jiminy)
+project(jiminy_ros)
 
 # Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
@@ -15,7 +15,7 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
-find_package(mini_jiminy_msgs REQUIRED)
+find_package(jiminy_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 # C++
@@ -25,13 +25,13 @@ include_directories(include)
 set(DEPENDENCIES
   rclcpp::rclcpp
   rclcpp_lifecycle::rclcpp_lifecycle
-  ${mini_jiminy_msgs_TARGETS}
+  ${jiminy_msgs_TARGETS}
   yaml-cpp
 )
 set(DEPENDENCIES_PACKAGE
   rclcpp
   rclcpp_lifecycle
-  mini_jiminy_msgs
+  jiminy_msgs
 )
 
 install(DIRECTORY include/
@@ -40,8 +40,8 @@ install(DIRECTORY include/
 
 # Library for reuse in tests
 add_library(${PROJECT_NAME}_lib
-  src/mini_jiminy/mini_jiminy.cpp
-  src/mini_jiminy/mini_jiminy_node.cpp
+  src/jiminy_ros/jiminy.cpp
+  src/jiminy_ros/jiminy_node.cpp
 )
 target_link_libraries(${PROJECT_NAME}_lib PUBLIC ${DEPENDENCIES})
 target_include_directories(${PROJECT_NAME}_lib PUBLIC
@@ -50,12 +50,12 @@ target_include_directories(${PROJECT_NAME}_lib PUBLIC
 )
 
 # demo
-add_executable(mini_jiminy_node 
-  src/mini_jiminy_main.cpp 
+add_executable(jiminy_node 
+  src/jiminy_main.cpp 
 )
-target_link_libraries(mini_jiminy_node PUBLIC ${PROJECT_NAME}_lib)
+target_link_libraries(jiminy_node PUBLIC ${PROJECT_NAME}_lib)
 install(TARGETS
-  mini_jiminy_node
+  jiminy_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -159,7 +159,7 @@ If you want to set up manually:
 ```bash
 cd /home/robotica/jiminy-folder/jiminy_ros
 source install/setup.bash
-ros2 launch mini_jiminy_bringup mini_jiminy.launch.py
+ros2 launch jiminy_bringup jiminy.launch.py
 ```
 
 2. Run tests in another terminal:
@@ -256,7 +256,7 @@ To integrate into CI/CD pipeline:
   run: |
     cd jiminy_ros
     source install/setup.bash
-    timeout 60 ros2 launch mini_jiminy_bringup mini_jiminy.launch.py &
+    timeout 60 ros2 launch jiminy_bringup jiminy.launch.py &
     sleep 5
     python3 test_load_scenario_service.py
     python3 test_jiminy_reasoning.py
@@ -290,8 +290,8 @@ To integrate into CI/CD pipeline:
 
 **Solution:**
 
-1. Verify YAML files exist in `mini_jiminy_bringup/scenarios/`
-2. Check file permissions: `ls -l mini_jiminy_bringup/scenarios/*.yaml`
+1. Verify YAML files exist in `jiminy_bringup/scenarios/`
+2. Check file permissions: `ls -l jiminy_bringup/scenarios/*.yaml`
 3. Validate YAML syntax: `python3 -c "import yaml; yaml.safe_load(open('file.yaml'))"`
 
 ## Future Enhancements

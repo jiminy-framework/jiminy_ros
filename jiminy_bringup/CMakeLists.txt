@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(mini_jiminy_bringup)
+project(jiminy_bringup)
 
 find_package(ament_cmake REQUIRED)
 

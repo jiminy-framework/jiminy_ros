@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2026 Miguel Ángel González Santamarta
+// Copyright (c) 2026 Jiminy Framework
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef MINI_JIMINY__MINI_JIMINY_NODE_HPP_
-#define MINI_JIMINY__MINI_JIMINY_NODE_HPP_
+#ifndef JIMINY__JIMINY_NODE_HPP_
+#define JIMINY__JIMINY_NODE_HPP_
 
 #include <memory>
 
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
-#include "mini_jiminy/mini_jiminy.hpp"
-#include "mini_jiminy_msgs/srv/call_jiminy.hpp"
-#include "mini_jiminy_msgs/srv/get_scenario.hpp"
-#include "mini_jiminy_msgs/srv/load_scenario.hpp"
+#include "jiminy_msgs/srv/call_jiminy.hpp"
+#include "jiminy_msgs/srv/get_scenario.hpp"
+#include "jiminy_msgs/srv/load_scenario.hpp"
+#include "jiminy_ros/jiminy.hpp"
 
-namespace mini_jiminy {
+namespace jiminy {
 
 /**
  * @class JiminyNode
@@ -114,8 +114,8 @@ private:
    * @param response The service response to be populated.
    */
   void call_jiminy_service_callback(
-      const std::shared_ptr<mini_jiminy_msgs::srv::CallJiminy::Request> request,
-      std::shared_ptr<mini_jiminy_msgs::srv::CallJiminy::Response> response);
+      const std::shared_ptr<jiminy_msgs::srv::CallJiminy::Request> request,
+      std::shared_ptr<jiminy_msgs::srv::CallJiminy::Response> response);
 
   /**
    * @brief Callback function for the GetScenario service.
@@ -123,9 +123,8 @@ private:
    * @param response The service response to be populated with the scenario.
    */
   void get_scenario_service_callback(
-      const std::shared_ptr<mini_jiminy_msgs::srv::GetScenario::Request>
-          request,
-      std::shared_ptr<mini_jiminy_msgs::srv::GetScenario::Response> response);
+      const std::shared_ptr<jiminy_msgs::srv::GetScenario::Request> request,
+      std::shared_ptr<jiminy_msgs::srv::GetScenario::Response> response);
 
   /**
    * @brief Callback function for the LoadScenario service.
@@ -133,9 +132,8 @@ private:
    * @param response The service response with the loaded scenario.
    */
   void load_scenario_service_callback(
-      const std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Request>
-          request,
-      std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Response> response);
+      const std::shared_ptr<jiminy_msgs::srv::LoadScenario::Request> request,
+      std::shared_ptr<jiminy_msgs::srv::LoadScenario::Response> response);
 
   /// @brief Unique pointer to the Jiminy instance.
   std::unique_ptr<Jiminy> jiminy_;
@@ -143,16 +141,16 @@ private:
   std::string config_file_;
 
   /// @brief Service for handling Jiminy calls.
-  std::shared_ptr<rclcpp::Service<mini_jiminy_msgs::srv::CallJiminy>>
+  std::shared_ptr<rclcpp::Service<jiminy_msgs::srv::CallJiminy>>
       jiminy_service_;
   /// @brief Service for retrieving the scenario.
-  std::shared_ptr<rclcpp::Service<mini_jiminy_msgs::srv::GetScenario>>
+  std::shared_ptr<rclcpp::Service<jiminy_msgs::srv::GetScenario>>
       get_scenario_service_;
   /// @brief Service for loading a new scenario from file.
-  std::shared_ptr<rclcpp::Service<mini_jiminy_msgs::srv::LoadScenario>>
+  std::shared_ptr<rclcpp::Service<jiminy_msgs::srv::LoadScenario>>
       load_scenario_service_;
 };
 
-} // namespace mini_jiminy
+} // namespace jiminy
 
-#endif // MINI_JIMINY__MINI_JIMINY_NODE_HPP
+#endif // JIMINY__JIMINY_NODE_HPP

@@ -70,7 +70,7 @@ python3 test/integration/test_jiminy_reasoning.py
 
 - ROS 2 installed
 - Jiminy packages built: `colcon build`
-- Jiminy node running: `ros2 launch mini_jiminy_bringup mini_jiminy.launch.py`
+- Jiminy node running: `ros2 launch jiminy_bringup jiminy.launch.py`
 
 ## Test Coverage
 
@@ -106,7 +106,7 @@ python3 test/integration/test_jiminy_reasoning.py
   run: |
     cd jiminy_ros
     source install/setup.bash
-    timeout 60 ros2 launch mini_jiminy_bringup mini_jiminy.launch.py &
+    timeout 60 ros2 launch jiminy_bringup jiminy.launch.py &
     sleep 5
     ./test/scripts/run_all_tests.sh
 ```
@@ -143,7 +143,7 @@ Pass Rate: 100.0%
 
 ```bash
 # Check node is running
-ros2 node list | grep mini_jiminy
+ros2 node list | grep jiminy
 
 # Check services
 ros2 service list | grep jiminy
@@ -159,7 +159,7 @@ python3 -c "import yaml; yaml.safe_load(open('path/to/file.yaml'))"
 **Issue**: Tests timeout
 
 - Increase timeout in test scripts
-- Check ROS node CPU/memory usage: `ros2 node info /mini_jiminy_node`
+- Check ROS node CPU/memory usage: `ros2 node info /jiminy_node`
 
 ## For More Information
 

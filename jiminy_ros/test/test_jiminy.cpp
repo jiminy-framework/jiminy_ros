@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2026 Miguel Ángel González Santamarta
+// Copyright (c) 2026 Jiminy Framework
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,9 @@
 #include <string>
 #include <vector>
 
-#include "mini_jiminy/mini_jiminy.hpp"
+#include "jiminy_ros/jiminy.hpp"
 
-using namespace mini_jiminy;
+using namespace jiminy;
 
 //==============================================================================
 // Helper functions to build test scenarios

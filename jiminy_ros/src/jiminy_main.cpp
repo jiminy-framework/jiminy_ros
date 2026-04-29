@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2026 Miguel Ángel González Santamarta
+// Copyright (c) 2026 Jiminy Framework
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,12 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "mini_jiminy/mini_jiminy_node.hpp"
+#include "jiminy_ros/jiminy_node.hpp"
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
 
-  auto node = std::make_shared<mini_jiminy::JiminyNode>();
+  auto node = std::make_shared<jiminy::JiminyNode>();
   node->configure();
   node->activate();
 

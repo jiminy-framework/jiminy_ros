@@ -33,10 +33,10 @@ fi
 
 # Check node is running
 echo "Checking for Jiminy ROS node..."
-if ! ros2 node list 2>/dev/null | grep -q mini_jiminy; then
-    echo -e "${YELLOW}Warning: mini_jiminy node not detected${NC}"
+if ! ros2 node list 2>/dev/null | grep -q jiminy; then
+    echo -e "${YELLOW}Warning: jiminy node not detected${NC}"
     echo "Starting Jiminy node..."
-    timeout 10 ros2 launch mini_jiminy_bringup mini_jiminy.launch.py &
+    timeout 10 ros2 launch jiminy_bringup jiminy.launch.py &
     sleep 3
 fi
 

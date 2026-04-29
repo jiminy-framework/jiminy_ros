@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2026 Miguel Ángel González Santamarta
+// Copyright (c) 2026 Jiminy Framework
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,10 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/state.hpp>
 
-#include "mini_jiminy/mini_jiminy_node.hpp"
-#include "mini_jiminy_msgs/msg/semantics.hpp"
-#include "mini_jiminy_msgs/srv/call_jiminy.hpp"
-#include "mini_jiminy_msgs/srv/get_scenario.hpp"
+#include "jiminy_msgs/msg/semantics.hpp"
+#include "jiminy_msgs/srv/call_jiminy.hpp"
+#include "jiminy_msgs/srv/get_scenario.hpp"
+#include "jiminy_ros/jiminy_node.hpp"
 
 using namespace std::chrono_literals;
 
@@ -114,14 +114,14 @@ priorities:
 // Parameter Tests
 //==============================================================================
 TEST_F(JiminyNodeTest, DefaultConfigFileParameter) {
-  auto node = std::make_shared<mini_jiminy::JiminyNode>();
+  auto node = std::make_shared<jiminy::JiminyNode>();
 
   auto config_file = node->get_parameter("config_file").as_string();
   EXPECT_EQ(config_file, "config.yaml");
 }
 
 TEST_F(JiminyNodeTest, SetConfigFileParameter) {
-  auto node = std::make_shared<mini_jiminy::JiminyNode>();
+  auto node = std::make_shared<jiminy::JiminyNode>();
 
   node->set_parameter(rclcpp::Parameter("config_file", test_config_path_));
 
@@ -138,7 +138,7 @@ protected:
     JiminyNodeTest::SetUp();
 
     // Create and activate the node
-    node_ = std::make_shared<mini_jiminy::JiminyNode>();
+    node_ = std::make_shared<jiminy::JiminyNode>();
     node_->set_parameter(rclcpp::Parameter("config_file", test_config_path_));
     node_->configure();
     node_->activate();
@@ -154,20 +154,20 @@ protected:
     JiminyNodeTest::TearDown();
   }
 
-  std::shared_ptr<mini_jiminy::JiminyNode> node_;
+  std::shared_ptr<jiminy::JiminyNode> node_;
   std::shared_ptr<rclcpp::Node> client_node_;
 };
 
 TEST_F(JiminyNodeServiceTest, CallJiminyServiceExists) {
-  auto client = client_node_->create_client<mini_jiminy_msgs::srv::CallJiminy>(
-      "call_jiminy");
+  auto client =
+      client_node_->create_client<jiminy_msgs::srv::CallJiminy>("call_jiminy");
 
   // Wait for the service to be available
   EXPECT_TRUE(client->wait_for_service(2s));
 }
 
 TEST_F(JiminyNodeServiceTest, GetScenarioServiceExists) {
-  auto client = client_node_->create_client<mini_jiminy_msgs::srv::GetScenario>(
+  auto client = client_node_->create_client<jiminy_msgs::srv::GetScenario>(
       "get_scenario");
 
   // Wait for the service to be available
@@ -175,14 +175,14 @@ TEST_F(JiminyNodeServiceTest, GetScenarioServiceExists) {
 }
 
 TEST_F(JiminyNodeServiceTest, CallJiminyWithValidFacts) {
-  auto client = client_node_->create_client<mini_jiminy_msgs::srv::CallJiminy>(
-      "call_jiminy");
+  auto client =
+      client_node_->create_client<jiminy_msgs::srv::CallJiminy>("call_jiminy");
 
   ASSERT_TRUE(client->wait_for_service(2s));
 
-  auto request = std::make_shared<mini_jiminy_msgs::srv::CallJiminy::Request>();
+  auto request = std::make_shared<jiminy_msgs::srv::CallJiminy::Request>();
   request->facts = {"w1"};
-  request->semantics.semantics = mini_jiminy_msgs::msg::Semantics::PRIORITY;
+  request->semantics.semantics = jiminy_msgs::msg::Semantics::PRIORITY;
 
   auto future = client->async_send_request(request);
 
@@ -200,14 +200,14 @@ TEST_F(JiminyNodeServiceTest, CallJiminyWithValidFacts) {
 }
 
 TEST_F(JiminyNodeServiceTest, CallJiminyWithInvalidFact) {
-  auto client = client_node_->create_client<mini_jiminy_msgs::srv::CallJiminy>(
-      "call_jiminy");
+  auto client =
+      client_node_->create_client<jiminy_msgs::srv::CallJiminy>("call_jiminy");
 
   ASSERT_TRUE(client->wait_for_service(2s));
 
-  auto request = std::make_shared<mini_jiminy_msgs::srv::CallJiminy::Request>();
+  auto request = std::make_shared<jiminy_msgs::srv::CallJiminy::Request>();
   request->facts = {"nonexistent_fact"};
-  request->semantics.semantics = mini_jiminy_msgs::msg::Semantics::PRIORITY;
+  request->semantics.semantics = jiminy_msgs::msg::Semantics::PRIORITY;
 
   auto future = client->async_send_request(request);
 
@@ -224,8 +224,8 @@ TEST_F(JiminyNodeServiceTest, CallJiminyWithInvalidFact) {
 }
 
 TEST_F(JiminyNodeServiceTest, CallJiminyWithDifferentSemantics) {
-  auto client = client_node_->create_client<mini_jiminy_msgs::srv::CallJiminy>(
-      "call_jiminy");
+  auto client =
+      client_node_->create_client<jiminy_msgs::srv::CallJiminy>("call_jiminy");
 
   ASSERT_TRUE(client->wait_for_service(2s));
 
@@ -235,14 +235,13 @@ TEST_F(JiminyNodeServiceTest, CallJiminyWithDifferentSemantics) {
 
   // Test each semantics type
   std::vector<std::string> semantics_types = {
-      mini_jiminy_msgs::msg::Semantics::GROUNDED,
-      mini_jiminy_msgs::msg::Semantics::PREFERRED,
-      mini_jiminy_msgs::msg::Semantics::STABLE,
-      mini_jiminy_msgs::msg::Semantics::PRIORITY};
+      jiminy_msgs::msg::Semantics::GROUNDED,
+      jiminy_msgs::msg::Semantics::PREFERRED,
+      jiminy_msgs::msg::Semantics::STABLE,
+      jiminy_msgs::msg::Semantics::PRIORITY};
 
   for (const auto &semantics : semantics_types) {
-    auto request =
-        std::make_shared<mini_jiminy_msgs::srv::CallJiminy::Request>();
+    auto request = std::make_shared<jiminy_msgs::srv::CallJiminy::Request>();
     request->facts = {"w1"};
     request->semantics.semantics = semantics;
 
@@ -258,13 +257,12 @@ TEST_F(JiminyNodeServiceTest, CallJiminyWithDifferentSemantics) {
 }
 
 TEST_F(JiminyNodeServiceTest, GetScenarioReturnsCompleteScenario) {
-  auto client = client_node_->create_client<mini_jiminy_msgs::srv::GetScenario>(
+  auto client = client_node_->create_client<jiminy_msgs::srv::GetScenario>(
       "get_scenario");
 
   ASSERT_TRUE(client->wait_for_service(2s));
 
-  auto request =
-      std::make_shared<mini_jiminy_msgs::srv::GetScenario::Request>();
+  auto request = std::make_shared<jiminy_msgs::srv::GetScenario::Request>();
 
   auto future = client->async_send_request(request);
 
@@ -286,15 +284,15 @@ TEST_F(JiminyNodeServiceTest, GetScenarioReturnsCompleteScenario) {
 }
 
 TEST_F(JiminyNodeServiceTest, CallJiminyReturnsAcceptedAndRejected) {
-  auto client = client_node_->create_client<mini_jiminy_msgs::srv::CallJiminy>(
-      "call_jiminy");
+  auto client =
+      client_node_->create_client<jiminy_msgs::srv::CallJiminy>("call_jiminy");
 
   ASSERT_TRUE(client->wait_for_service(2s));
 
   // Provide both w1 and w2 to trigger conflicting norms
-  auto request = std::make_shared<mini_jiminy_msgs::srv::CallJiminy::Request>();
+  auto request = std::make_shared<jiminy_msgs::srv::CallJiminy::Request>();
   request->facts = {"w1", "w2"};
-  request->semantics.semantics = mini_jiminy_msgs::msg::Semantics::PRIORITY;
+  request->semantics.semantics = jiminy_msgs::msg::Semantics::PRIORITY;
 
   auto future = client->async_send_request(request);
 
@@ -374,20 +372,19 @@ norms:
 )";
 
   auto path = create_yaml_file(yaml);
-  auto node = std::make_shared<mini_jiminy::JiminyNode>();
+  auto node = std::make_shared<jiminy::JiminyNode>();
   node->set_parameter(rclcpp::Parameter("config_file", path));
   node->configure();
   node->activate();
 
   // Create client to get scenario
   auto client_node = rclcpp::Node::make_shared("test_client");
-  auto client = client_node->create_client<mini_jiminy_msgs::srv::GetScenario>(
-      "get_scenario");
+  auto client =
+      client_node->create_client<jiminy_msgs::srv::GetScenario>("get_scenario");
 
   ASSERT_TRUE(client->wait_for_service(2s));
 
-  auto request =
-      std::make_shared<mini_jiminy_msgs::srv::GetScenario::Request>();
+  auto request = std::make_shared<jiminy_msgs::srv::GetScenario::Request>();
   auto future = client->async_send_request(request);
 
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -433,19 +430,18 @@ norms:
 )yaml";
 
   auto path = create_yaml_file(yaml);
-  auto node = std::make_shared<mini_jiminy::JiminyNode>();
+  auto node = std::make_shared<jiminy::JiminyNode>();
   node->set_parameter(rclcpp::Parameter("config_file", path));
   node->configure();
   node->activate();
 
   auto client_node = rclcpp::Node::make_shared("test_client");
-  auto client = client_node->create_client<mini_jiminy_msgs::srv::GetScenario>(
-      "get_scenario");
+  auto client =
+      client_node->create_client<jiminy_msgs::srv::GetScenario>("get_scenario");
 
   ASSERT_TRUE(client->wait_for_service(2s));
 
-  auto request =
-      std::make_shared<mini_jiminy_msgs::srv::GetScenario::Request>();
+  auto request = std::make_shared<jiminy_msgs::srv::GetScenario::Request>();
   auto future = client->async_send_request(request);
 
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -479,19 +475,18 @@ norms:
 )";
 
   auto path = create_yaml_file(yaml);
-  auto node = std::make_shared<mini_jiminy::JiminyNode>();
+  auto node = std::make_shared<jiminy::JiminyNode>();
   node->set_parameter(rclcpp::Parameter("config_file", path));
   node->configure();
   node->activate();
 
   auto client_node = rclcpp::Node::make_shared("test_client");
-  auto client = client_node->create_client<mini_jiminy_msgs::srv::GetScenario>(
-      "get_scenario");
+  auto client =
+      client_node->create_client<jiminy_msgs::srv::GetScenario>("get_scenario");
 
   ASSERT_TRUE(client->wait_for_service(2s));
 
-  auto request =
-      std::make_shared<mini_jiminy_msgs::srv::GetScenario::Request>();
+  auto request = std::make_shared<jiminy_msgs::srv::GetScenario::Request>();
   auto future = client->async_send_request(request);
 
   rclcpp::executors::SingleThreadedExecutor executor;
@@ -510,20 +505,19 @@ norms:
 
 TEST_F(JiminyNodeYamlTest, LoadInvalidYamlFileReturnsEmptyJiminy) {
   // Create an invalid YAML file that doesn't exist
-  auto node = std::make_shared<mini_jiminy::JiminyNode>();
+  auto node = std::make_shared<jiminy::JiminyNode>();
   node->set_parameter(
       rclcpp::Parameter("config_file", "/tmp/nonexistent_file.yaml"));
   node->configure();
   node->activate();
 
   auto client_node = rclcpp::Node::make_shared("test_client");
-  auto client = client_node->create_client<mini_jiminy_msgs::srv::GetScenario>(
-      "get_scenario");
+  auto client =
+      client_node->create_client<jiminy_msgs::srv::GetScenario>("get_scenario");
 
   ASSERT_TRUE(client->wait_for_service(2s));
 
-  auto request =
-      std::make_shared<mini_jiminy_msgs::srv::GetScenario::Request>();
+  auto request = std::make_shared<jiminy_msgs::srv::GetScenario::Request>();
   auto future = client->async_send_request(request);
 
   rclcpp::executors::SingleThreadedExecutor executor;

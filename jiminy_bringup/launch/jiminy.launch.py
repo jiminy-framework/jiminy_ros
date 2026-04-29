@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2026 Miguel Ángel González Santamarta
+# Copyright (c) 2026 Jiminy Framework
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,19 +30,19 @@ from ament_index_python import get_package_share_directory
 
 def generate_launch_description():
 
-    # Creata a run_mini_jiminy opaque function
-    def run_mini_jiminy(context: LaunchContext, config_file):
+    # Creata a run_jiminy opaque function
+    def run_jiminy(context: LaunchContext, config_file):
         config_file = str(context.perform_substitution(config_file))
         config_file = os.path.join(
-            get_package_share_directory("mini_jiminy_bringup"),
+            get_package_share_directory("jiminy_bringup"),
             "scenarios",
             config_file,
         )
 
         return [
             Node(
-                package="mini_jiminy",
-                executable="mini_jiminy_node",
+                package="jiminy_ros",
+                executable="jiminy_node",
                 output="both",
                 parameters=[{"config_file": config_file}],
             )
@@ -51,13 +51,13 @@ def generate_launch_description():
     config_file = LaunchConfiguration("config_file")
     config_file_cmd = DeclareLaunchArgument(
         "config_file",
-        default_value="escenario_dulces_antes_de_comer.yaml",
+        default_value="candy_unified.yaml",
         description="Config file to use",
     )
 
     ld = LaunchDescription()
     ld.add_action(config_file_cmd)
     ld.add_action(
-        OpaqueFunction(function=run_mini_jiminy, args=[config_file]),
+        OpaqueFunction(function=run_jiminy, args=[config_file]),
     )
     return ld

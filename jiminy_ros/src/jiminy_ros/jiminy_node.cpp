@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2026 Miguel Ángel González Santamarta
+// Copyright (c) 2026 Jiminy Framework
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +22,33 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "mini_jiminy/mini_jiminy_node.hpp"
-#include "mini_jiminy_msgs/msg/fact.hpp"
-#include "mini_jiminy_msgs/msg/norm.hpp"
-#include "mini_jiminy_msgs/msg/semantics.hpp"
-#include "mini_jiminy_msgs/srv/call_jiminy.hpp"
+#include "jiminy_msgs/msg/fact.hpp"
+#include "jiminy_msgs/msg/norm.hpp"
+#include "jiminy_msgs/msg/semantics.hpp"
+#include "jiminy_msgs/srv/call_jiminy.hpp"
+#include "jiminy_ros/jiminy_node.hpp"
 
-using namespace mini_jiminy;
+using namespace jiminy;
 
 /**
- * @brief Convert a Norm structure to a mini_jiminy_msgs::msg::Norm message.
+ * @brief Convert a Norm structure to a jiminy_msgs::msg::Norm message.
  * @param norm The Norm structure to convert.
- * @return The corresponding mini_jiminy_msgs::msg::Norm message.
+ * @return The corresponding jiminy_msgs::msg::Norm message.
  */
-inline mini_jiminy_msgs::msg::Norm norm_to_msg(const Norm &norm) {
-  mini_jiminy_msgs::msg::Norm norm_msg;
+inline jiminy_msgs::msg::Norm norm_to_msg(const Norm &norm) {
+  jiminy_msgs::msg::Norm norm_msg;
   norm_msg.id = norm.id;
   norm_msg.body = norm.body;
   norm_msg.conclusion = norm.conclusion;
   switch (norm.type) {
   case NormType::CONSTITUTIVE:
-    norm_msg.type = mini_jiminy_msgs::msg::Norm::CONSTITUTIVE;
+    norm_msg.type = jiminy_msgs::msg::Norm::CONSTITUTIVE;
     break;
   case NormType::REGULATIVE:
-    norm_msg.type = mini_jiminy_msgs::msg::Norm::REGULATIVE;
+    norm_msg.type = jiminy_msgs::msg::Norm::REGULATIVE;
     break;
   case NormType::PERMISSIVE:
-    norm_msg.type = mini_jiminy_msgs::msg::Norm::PERMISSIVE;
+    norm_msg.type = jiminy_msgs::msg::Norm::PERMISSIVE;
     break;
   }
   norm_msg.stakeholder = norm.stakeholder;
@@ -56,7 +56,7 @@ inline mini_jiminy_msgs::msg::Norm norm_to_msg(const Norm &norm) {
   return norm_msg;
 }
 
-JiminyNode::JiminyNode() : rclcpp_lifecycle::LifecycleNode("mini_jiminy_node") {
+JiminyNode::JiminyNode() : rclcpp_lifecycle::LifecycleNode("jiminy_node") {
   this->declare_parameter<std::string>("config_file", "config.yaml");
 }
 
@@ -77,18 +77,16 @@ JiminyNode::on_activate(const rclcpp_lifecycle::State &) {
   RCLCPP_INFO(this->get_logger(), "[%s] Activating...", this->get_name());
 
   this->jiminy_ = load_jiminy(this->config_file_);
-  this->jiminy_service_ =
-      this->create_service<mini_jiminy_msgs::srv::CallJiminy>(
-          "call_jiminy",
-          std::bind(&JiminyNode::call_jiminy_service_callback, this,
-                    std::placeholders::_1, std::placeholders::_2));
+  this->jiminy_service_ = this->create_service<jiminy_msgs::srv::CallJiminy>(
+      "call_jiminy", std::bind(&JiminyNode::call_jiminy_service_callback, this,
+                               std::placeholders::_1, std::placeholders::_2));
   this->get_scenario_service_ =
-      this->create_service<mini_jiminy_msgs::srv::GetScenario>(
+      this->create_service<jiminy_msgs::srv::GetScenario>(
           "get_scenario",
           std::bind(&JiminyNode::get_scenario_service_callback, this,
                     std::placeholders::_1, std::placeholders::_2));
   this->load_scenario_service_ =
-      this->create_service<mini_jiminy_msgs::srv::LoadScenario>(
+      this->create_service<jiminy_msgs::srv::LoadScenario>(
           "load_scenario",
           std::bind(&JiminyNode::load_scenario_service_callback, this,
                     std::placeholders::_1, std::placeholders::_2));
@@ -175,8 +173,8 @@ inline void parse_old_norms_section(const YAML::Node &section,
     } else if (type_str == "p" || type_str == "permissive") {
       norm.type = NormType::PERMISSIVE;
     } else {
-      RCLCPP_WARN(norms.empty() ? rclcpp::get_logger("mini_jiminy")
-                                : rclcpp::get_logger("mini_jiminy"),
+      RCLCPP_WARN(norms.empty() ? rclcpp::get_logger("jiminy")
+                                : rclcpp::get_logger("jiminy"),
                   "Unknown norm type: %s", type_str.c_str());
       norm.type = NormType::CONSTITUTIVE;
     }
@@ -316,8 +314,8 @@ JiminyNode::load_jiminy(const std::string &config_file) {
 }
 
 void JiminyNode::call_jiminy_service_callback(
-    const std::shared_ptr<mini_jiminy_msgs::srv::CallJiminy::Request> request,
-    std::shared_ptr<mini_jiminy_msgs::srv::CallJiminy::Response> response) {
+    const std::shared_ptr<jiminy_msgs::srv::CallJiminy::Request> request,
+    std::shared_ptr<jiminy_msgs::srv::CallJiminy::Response> response) {
   RCLCPP_INFO(this->get_logger(), "Received Jiminy service request");
 
   if (!this->jiminy_) {
@@ -348,17 +346,16 @@ void JiminyNode::call_jiminy_service_callback(
 
   // Compute extension based on requested semantics
   Semantics semantics;
-  if (request->semantics.semantics ==
-      mini_jiminy_msgs::msg::Semantics::GROUNDED) {
+  if (request->semantics.semantics == jiminy_msgs::msg::Semantics::GROUNDED) {
     semantics = Semantics::GROUNDED;
   } else if (request->semantics.semantics ==
-             mini_jiminy_msgs::msg::Semantics::PREFERRED) {
+             jiminy_msgs::msg::Semantics::PREFERRED) {
     semantics = Semantics::PREFERRED;
   } else if (request->semantics.semantics ==
-             mini_jiminy_msgs::msg::Semantics::STABLE) {
+             jiminy_msgs::msg::Semantics::STABLE) {
     semantics = Semantics::STABLE;
   } else if (request->semantics.semantics ==
-             mini_jiminy_msgs::msg::Semantics::PRIORITY) {
+             jiminy_msgs::msg::Semantics::PRIORITY) {
     semantics = Semantics::PRIORITY;
   } else {
     RCLCPP_WARN(this->get_logger(), "Unknown semantics: %s, using PRIORITY",
@@ -385,8 +382,8 @@ void JiminyNode::call_jiminy_service_callback(
 }
 
 void JiminyNode::get_scenario_service_callback(
-    const std::shared_ptr<mini_jiminy_msgs::srv::GetScenario::Request> request,
-    std::shared_ptr<mini_jiminy_msgs::srv::GetScenario::Response> response) {
+    const std::shared_ptr<jiminy_msgs::srv::GetScenario::Request> request,
+    std::shared_ptr<jiminy_msgs::srv::GetScenario::Response> response) {
 
   (void)request;
 
@@ -404,7 +401,7 @@ void JiminyNode::get_scenario_service_callback(
   // Populate response scenario
   // Facts
   for (const auto &[id, fact] : this->jiminy_->get_facts()) {
-    mini_jiminy_msgs::msg::Fact fact_msg;
+    jiminy_msgs::msg::Fact fact_msg;
     fact_msg.id = fact.id;
     fact_msg.description = fact.description;
     response->scenario.context.push_back(fact_msg);
@@ -417,7 +414,7 @@ void JiminyNode::get_scenario_service_callback(
 
   // Contrariness
   for (const auto &[id, contrary] : this->jiminy_->get_contraries()) {
-    mini_jiminy_msgs::msg::Contrary contrary_msg;
+    jiminy_msgs::msg::Contrary contrary_msg;
     contrary_msg.id = contrary.id;
     contrary_msg.contraries = contrary.contraries;
     contrary_msg.description = contrary.description;
@@ -426,7 +423,7 @@ void JiminyNode::get_scenario_service_callback(
 
   // Priorities
   for (const auto &[id, priority] : this->jiminy_->get_priorities()) {
-    mini_jiminy_msgs::msg::Priority priority_msg;
+    jiminy_msgs::msg::Priority priority_msg;
     priority_msg.id = priority.id;
     priority_msg.value = priority.value;
     priority_msg.description = priority.description;
@@ -438,8 +435,8 @@ void JiminyNode::get_scenario_service_callback(
 }
 
 void JiminyNode::load_scenario_service_callback(
-    const std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Request> request,
-    std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Response> response) {
+    const std::shared_ptr<jiminy_msgs::srv::LoadScenario::Request> request,
+    std::shared_ptr<jiminy_msgs::srv::LoadScenario::Response> response) {
 
   RCLCPP_INFO(this->get_logger(),
               "Received LoadScenario service request for: %s",
@@ -465,7 +462,7 @@ void JiminyNode::load_scenario_service_callback(
 
     // Facts
     for (const auto &[id, fact] : this->jiminy_->get_facts()) {
-      mini_jiminy_msgs::msg::Fact fact_msg;
+      jiminy_msgs::msg::Fact fact_msg;
       fact_msg.id = fact.id;
       fact_msg.description = fact.description;
       response->scenario.context.push_back(fact_msg);
@@ -478,7 +475,7 @@ void JiminyNode::load_scenario_service_callback(
 
     // Contraries
     for (const auto &[id, contrary] : this->jiminy_->get_contraries()) {
-      mini_jiminy_msgs::msg::Contrary contrary_msg;
+      jiminy_msgs::msg::Contrary contrary_msg;
       contrary_msg.id = contrary.id;
       contrary_msg.contraries = contrary.contraries;
       contrary_msg.description = contrary.description;
@@ -487,7 +484,7 @@ void JiminyNode::load_scenario_service_callback(
 
     // Priorities
     for (const auto &[id, priority] : this->jiminy_->get_priorities()) {
-      mini_jiminy_msgs::msg::Priority priority_msg;
+      jiminy_msgs::msg::Priority priority_msg;
       priority_msg.id = priority.id;
       priority_msg.value = priority.value;
       priority_msg.description = priority.description;

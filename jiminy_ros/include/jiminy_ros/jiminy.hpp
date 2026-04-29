@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2026 Miguel Ángel González Santamarta
+// Copyright (c) 2026 Jiminy Framework
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,15 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef MINI_JIMINY__MINI_JIMINY_HPP_
-#define MINI_JIMINY__MINI_JIMINY_HPP_
+#ifndef JIMINY__JIMINY_HPP_
+#define JIMINY__JIMINY_HPP_
 
 #include <map>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
-namespace mini_jiminy {
+namespace jiminy {
 
 /**
  * @enum NormType
@@ -398,6 +398,6 @@ private:
   std::map<std::string, Priority> priorities_;
 };
 
-} // namespace mini_jiminy
+} // namespace jiminy
 
-#endif // MINI_JIMINY__MINI_JIMINY_HPP
+#endif // JIMINY__JIMINY_HPP

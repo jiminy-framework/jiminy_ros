@@ -92,7 +92,7 @@ rosdep install --from-paths src --ignore-src -r -y
 To run the tests:
 
 ```shell
-colcon test --executor sequential --packages-select mini_jiminy
+colcon test --executor sequential --packages-select jiminy_ros
 colcon test-result --verbose
 ```
 
@@ -101,11 +101,11 @@ colcon test-result --verbose
 ## Usage
 
 ```bash
-ros2 launch mini_jiminy_bringup mini_jiminy.launch.py
+ros2 launch jiminy_bringup jiminy.launch.py
 ```
 
 ```bash
-ros2 service call /call_jiminy mini_jiminy_msgs/srv/CallJiminy "{'semantics': {'semantics': 'grounded'}, 'facts': ['w1', 'w5']}"
+ros2 service call /call_jiminy jiminy_msgs/srv/CallJiminy "{'semantics': {'semantics': 'grounded'}, 'facts': ['w1', 'w3']}"
 ```
 
 The engine prints:
@@ -136,7 +136,7 @@ This feature enables:
 
 ### The `/load_scenario` Service
 
-**Service Type**: `mini_jiminy_msgs/LoadScenario`
+**Service Type**: `jiminy_msgs/LoadScenario`
 
 **Request**:
 
@@ -168,14 +168,14 @@ ScenarioFull scenario                           # Loaded scenario details (if su
 Start the Jiminy node:
 
 ```bash
-ros2 launch mini_jiminy_bringup mini_jiminy.launch.py
+ros2 launch jiminy_bringup jiminy.launch.py
 ```
 
 In another terminal, load the **jair.yaml** scenario (with base priorities):
 
 ```bash
-ros2 service call /load_scenario mini_jiminy_msgs/srv/LoadScenario \
-  "config_file: 'src/mini_jiminy_bringup/scenarios/jair.yaml'"
+ros2 service call /load_scenario jiminy_msgs/srv/LoadScenario \
+  "config_file: 'src/jiminy_bringup/scenarios/jair.yaml'"
 ```
 
 **Expected Response**:
@@ -190,15 +190,15 @@ result:
 Switch to **agrobot.yaml** scenario:
 
 ```bash
-ros2 service call /load_scenario mini_jiminy_msgs/srv/LoadScenario \
-  "config_file: 'src/mini_jiminy_bringup/scenarios/agrobot.yaml'"
+ros2 service call /load_scenario jiminy_msgs/srv/LoadScenario \
+  "config_file: 'src/jiminy_bringup/scenarios/agrobot.yaml'"
 ```
 
 #### 2. Using Python Client
 
 ```python
 import rclpy
-from mini_jiminy_msgs.srv import LoadScenario
+from jiminy_msgs.srv import LoadScenario
 
 def main():
     rclpy.init()
@@ -210,7 +210,7 @@ def main():
 
     # Load jair.yaml scenario
     request = LoadScenario.Request()
-    request.config_file = 'src/mini_jiminy_bringup/scenarios/jair.yaml'
+    request.config_file = 'src/jiminy_bringup/scenarios/jair.yaml'
 
     future = client.call_async(request)
     rclpy.spin_until_future_complete(node, future)
@@ -234,22 +234,22 @@ if __name__ == '__main__':
 
 ```cpp
 #include "rclcpp/rclcpp.hpp"
-#include "mini_jiminy_msgs/srv/load_scenario.hpp"
+#include "jiminy_msgs/srv/load_scenario.hpp"
 
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("scenario_loader");
 
-  auto client = node->create_client<mini_jiminy_msgs::srv::LoadScenario>("/load_scenario");
+  auto client = node->create_client<jiminy_msgs::srv::LoadScenario>("/load_scenario");
 
   while (!client->wait_for_service(std::chrono::seconds(1))) {
     if (!rclcpp::ok()) return 0;
     RCLCPP_INFO(node->get_logger(), "Waiting for service...");
   }
 
-  auto request = std::make_shared<mini_jiminy_msgs::srv::LoadScenario::Request>();
-  request->config_file = "src/mini_jiminy_bringup/scenarios/jair.yaml";
+  auto request = std::make_shared<jiminy_msgs::srv::LoadScenario::Request>();
+  request->config_file = "src/jiminy_bringup/scenarios/jair.yaml";
 
   auto result = client->async_send_request(request);
   if (rclcpp::spin_until_future_complete(node, result) ==
@@ -317,27 +317,27 @@ The engine **automatically computes conclusion-level priorities** from stakehold
 
 ```bash
 # Start Jiminy
-ros2 launch mini_jiminy_bringup mini_jiminy.launch.py
+ros2 launch jiminy_bringup jiminy.launch.py
 
 # --- Scenario 1: Agricultural Robot (Agrobot) ---
-ros2 service call /load_scenario mini_jiminy_msgs/srv/LoadScenario \
-  "config_file: 'src/mini_jiminy_bringup/scenarios/agrobot.yaml'"
+ros2 service call /load_scenario jiminy_msgs/srv/LoadScenario \
+  "config_file: 'src/jiminy_bringup/scenarios/agrobot.yaml'"
 
 # Run reasoning on loaded scenario
-ros2 service call /call_jiminy mini_jiminy_msgs/srv/CallJiminy \
+ros2 service call /call_jiminy jiminy_msgs/srv/CallJiminy \
   "{'semantics': {'semantics': 'grounded'}, 'facts': ['w1', 'w2']}"
 
 # --- Scenario 2: Jair (Multi-stakeholder with Meta-priorities) ---
-ros2 service call /load_scenario mini_jiminy_msgs/srv/LoadScenario \
-  "config_file: 'src/mini_jiminy_bringup/scenarios/jair.yaml'"
+ros2 service call /load_scenario jiminy_msgs/srv/LoadScenario \
+  "config_file: 'src/jiminy_bringup/scenarios/jair.yaml'"
 
 # Run reasoning on the new scenario (no node restart required)
-ros2 service call /call_jiminy mini_jiminy_msgs/srv/CallJiminy \
+ros2 service call /call_jiminy jiminy_msgs/srv/CallJiminy \
   "{'semantics': {'semantics': 'grounded'}, 'facts': ['w3', 'w4', 'w5']}"
 
 # --- Scenario 3: Smoke Alarm ---
-ros2 service call /load_scenario mini_jiminy_msgs/srv/LoadScenario \
-  "config_file: 'src/mini_jiminy_bringup/scenarios/smoke_alarm.yaml'"
+ros2 service call /load_scenario jiminy_msgs/srv/LoadScenario \
+  "config_file: 'src/jiminy_bringup/scenarios/smoke_alarm.yaml'"
 ```
 
 ### Error Handling

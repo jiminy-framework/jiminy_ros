@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(mini_jiminy_msgs)
+project(jiminy_msgs)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)

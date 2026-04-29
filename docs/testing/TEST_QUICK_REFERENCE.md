@@ -22,7 +22,7 @@
 
 cd ~/jiminy-folder/jiminy_ros
 source install/setup.bash
-ros2 launch mini_jiminy_bringup mini_jiminy.launch.py
+ros2 launch jiminy_bringup jiminy.launch.py
 
 # Terminal 2: Run all tests
 
@@ -222,12 +222,12 @@ python3 test_jiminy_reasoning.py
 
 # Load a scenario manually
 
-ros2 service call /load_scenario mini_jiminy_msgs/srv/LoadScenario \
- "config_file: 'mini_jiminy_bringup/scenarios/jair.yaml'"
+ros2 service call /load_scenario jiminy_msgs/srv/LoadScenario \
+ "config_file: 'jiminy_bringup/scenarios/jair.yaml'"
 
 # Call reasoning engine with specific facts
 
-ros2 service call /call_jiminy mini_jiminy_msgs/srv/CallJiminy \
+ros2 service call /call_jiminy jiminy_msgs/srv/CallJiminy \
  "{'semantics': {'semantics': 'grounded'}, 'facts': ['w1', 'w2']}"
 
 # View available services
@@ -241,7 +241,7 @@ ros2 service type /call_jiminy
 
 # View service schemas
 
-ros2 service type /load_scenario | ros2 interface show mini_jiminy_msgs/srv/LoadScenario
+ros2 service type /load_scenario | ros2 interface show jiminy_msgs/srv/LoadScenario
 
 # ============================================================================
 
@@ -261,15 +261,15 @@ colcon build # Rebuild if needed
 
 # Solution:
 
-ls -la mini_jiminy_bringup/scenarios/ # Check files exist
-file mini_jiminy_bringup/scenarios/\*.yaml # Check file types
-python3 -c "import yaml; yaml.safe_load(open('mini_jiminy_bringup/scenarios/jair.yaml'))"
+ls -la jiminy_bringup/scenarios/ # Check files exist
+file jiminy_bringup/scenarios/\*.yaml # Check file types
+python3 -c "import yaml; yaml.safe_load(open('jiminy_bringup/scenarios/jair.yaml'))"
 
 # Problem: Tests timeout
 
 # Solution: Increase timeout in test scripts or check node CPU usage
 
-ros2 node info /mini_jiminy_node
+ros2 node info /jiminy_node
 
 # Problem: Permission denied
 
@@ -294,8 +294,8 @@ tail -f ~/.ros/log/latest_run/\*(N)/log
 
 # Inspect service responses
 
-ros2 service call /load_scenario mini_jiminy_msgs/srv/LoadScenario \
- "config_file: 'mini_jiminy_bringup/scenarios/jair.yaml'" | tee service_response.txt
+ros2 service call /load_scenario jiminy_msgs/srv/LoadScenario \
+ "config_file: 'jiminy_bringup/scenarios/jair.yaml'" | tee service_response.txt
 
 # Parse response
 
@@ -316,7 +316,7 @@ source install/setup.bash
 
 # Start node in background
 
-timeout 45 ros2 launch mini_jiminy_bringup mini_jiminy.launch.py &
+timeout 45 ros2 launch jiminy_bringup jiminy.launch.py &
 NODE_PID=$!
 sleep 5
 
@@ -347,11 +347,11 @@ echo " - Full suite duration: ~60 seconds"
 
 # Count scenarios
 
-find mini_jiminy_bringup/scenarios -name "\*.yaml" | wc -l
+find jiminy_bringup/scenarios -name "\*.yaml" | wc -l
 
 # Count norms
 
-grep "- id:" mini_jiminy_bringup/scenarios/\*.yaml | wc -l
+grep "- id:" jiminy_bringup/scenarios/\*.yaml | wc -l
 
 # Count test methods
 
