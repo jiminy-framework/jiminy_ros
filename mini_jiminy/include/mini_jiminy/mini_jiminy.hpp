@@ -1,5 +1,27 @@
-#ifndef MINI_JIMINY__MINI_JIMINY_HPP
-#define MINI_JIMINY__MINI_JIMINY_HPP
+// MIT License
+//
+// Copyright (c) 2026 Miguel Ángel González Santamarta
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+#ifndef MINI_JIMINY__MINI_JIMINY_HPP_
+#define MINI_JIMINY__MINI_JIMINY_HPP_
 
 #include <map>
 #include <string>
@@ -76,7 +98,7 @@ struct Priority {
  * @brief Structure representing dynamic priority rules based on context facts.
  */
 struct MetaPriority {
-  std::string if_condition;  // fact that triggers this rule
+  std::string if_condition; // fact that triggers this rule
   std::string stakeholder;
   int value;
   std::string description;
@@ -95,16 +117,12 @@ public:
    * @param norms A map of norm identifiers to Norm structures.
    * @param contraries A map of contrary identifiers to Contrary structures.
    * @param priorities A map of priority identifiers to Priority structures.
-   * @param base_priorities A map of stakeholder identifiers to base priority values.
-   * @param meta_priorities A vector of MetaPriority rules for dynamic priority adjustment.
    */
   Jiminy(const std::string &description,
          const std::map<std::string, Fact> &facts,
          const std::map<std::string, Norm> &norms,
          const std::map<std::string, Contrary> &contraries,
-         const std::map<std::string, Priority> &priorities,
-         const std::map<std::string, int> &base_priorities = {},
-         const std::vector<MetaPriority> &meta_priorities = {});
+         const std::map<std::string, Priority> &priorities);
 
   /**
    * @brief Retrieve the description of the Jiminy instance.
@@ -161,22 +179,6 @@ public:
    */
   const std::map<std::string, Priority> &get_priorities() const {
     return this->priorities_;
-  }
-
-  /**
-   * @brief Retrieve all base priorities managed by Jiminy.
-   * @return A const reference to a map of stakeholder identifiers to base priority values.
-   */
-  const std::map<std::string, int> &get_base_priorities() const {
-    return this->base_priorities_;
-  }
-
-  /**
-   * @brief Retrieve all meta priorities managed by Jiminy.
-   * @return A const reference to a vector of MetaPriority structures.
-   */
-  const std::vector<MetaPriority> &get_meta_priorities() const {
-    return this->meta_priorities_;
   }
 
   /**
@@ -342,26 +344,9 @@ private:
   /**
    * @brief Retrieve the priority value for a given identifier.
    * @param id The identifier for which to get the priority value.
-   * @param accepted_conclusions Optional set of accepted conclusions for dynamic priority computation.
    * @return The priority value associated with the identifier.
    */
   int get_priority_value(const std::string &id) const;
-
-  /**
-   * @brief Derive stakeholder priorities based on base and meta-priorities.
-   * @param accepted_conclusions Set of accepted conclusion identifiers.
-   * @return A map of stakeholder identifiers to computed priority values.
-   */
-  std::map<std::string, int>
-  derive_stakeholder_priorities(const std::unordered_set<std::string> &accepted_conclusions) const;
-
-  /**
-   * @brief Derive conclusion-level priorities from stakeholder priorities.
-   * @param stakeholder_priorities A map of stakeholder identifiers to priority values.
-   * @return A map of conclusion identifiers to computed priority values.
-   */
-  std::map<std::string, int>
-  derive_conclusion_priorities(const std::map<std::string, int> &stakeholder_priorities) const;
 
   /**
    * @brief Get the keys of norms that attack a given target norm.
@@ -411,10 +396,6 @@ private:
   std::map<std::string, Contrary> contraries_;
   /// @brief Map of priority identifiers to Priority structures.
   std::map<std::string, Priority> priorities_;
-  /// @brief Map of stakeholder identifiers to base priority values.
-  std::map<std::string, int> base_priorities_;
-  /// @brief Vector of meta-priority rules for dynamic priority adjustment.
-  std::vector<MetaPriority> meta_priorities_;
 };
 
 } // namespace mini_jiminy

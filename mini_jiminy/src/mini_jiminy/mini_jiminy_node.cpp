@@ -1,3 +1,25 @@
+// MIT License
+//
+// Copyright (c) 2026 Miguel Ángel González Santamarta
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 #include <yaml-cpp/yaml.h>
 
 #include "mini_jiminy/mini_jiminy_node.hpp"
@@ -106,6 +128,64 @@ JiminyNode::on_shutdown(const rclcpp_lifecycle::State &) {
       CallbackReturn::SUCCESS;
 }
 
+/**
+ * @brief Helper to parse a single norm node into a Norm structure.
+ */
+inline Norm parse_norm_node(const YAML::Node &node, NormType type) {
+  Norm norm;
+  norm.id = node["id"].as<std::string>();
+  norm.body = node["body"].as<std::vector<std::string>>();
+  norm.conclusion = node["conclusion"].as<std::string>();
+  norm.type = type;
+  norm.stakeholder = node["stakeholder"].as<std::string>();
+  norm.description = node["description"].as<std::string>();
+  return norm;
+}
+
+/**
+ * @brief Parse norms from a YAML section with a given type.
+ */
+inline void parse_norms_section(const YAML::Node &section,
+                                std::map<std::string, Norm> &norms,
+                                NormType type) {
+  if (!section)
+    return;
+  for (const auto &node : section) {
+    norms[node["id"].as<std::string>()] = parse_norm_node(node, type);
+  }
+}
+
+/**
+ * @brief Parse old-format norms with type field.
+ */
+inline void parse_old_norms_section(const YAML::Node &section,
+                                    std::map<std::string, Norm> &norms) {
+  if (!section)
+    return;
+  for (const auto &node : section) {
+    Norm norm;
+    norm.id = node["id"].as<std::string>();
+    norm.body = node["body"].as<std::vector<std::string>>();
+    norm.conclusion = node["conclusion"].as<std::string>();
+    std::string type_str = node["type"].as<std::string>();
+    if (type_str == "c" || type_str == "constitutive") {
+      norm.type = NormType::CONSTITUTIVE;
+    } else if (type_str == "r" || type_str == "regulative") {
+      norm.type = NormType::REGULATIVE;
+    } else if (type_str == "p" || type_str == "permissive") {
+      norm.type = NormType::PERMISSIVE;
+    } else {
+      RCLCPP_WARN(norms.empty() ? rclcpp::get_logger("mini_jiminy")
+                                : rclcpp::get_logger("mini_jiminy"),
+                  "Unknown norm type: %s", type_str.c_str());
+      norm.type = NormType::CONSTITUTIVE;
+    }
+    norm.stakeholder = node["stakeholder"].as<std::string>();
+    norm.description = node["description"].as<std::string>();
+    norms[norm.id] = norm;
+  }
+}
+
 std::unique_ptr<Jiminy>
 JiminyNode::load_jiminy(const std::string &config_file) {
   RCLCPP_INFO(this->get_logger(), "Loading Jiminy configuration from %s",
@@ -133,71 +213,16 @@ JiminyNode::load_jiminy(const std::string &config_file) {
 
     // Parse norms (support multiple formats)
     std::map<std::string, Norm> norms;
-    
+
     // Old format: "norms" section with type field
-    if (config["norms"]) {
-      for (const auto &norm_node : config["norms"]) {
-        Norm norm;
-        norm.id = norm_node["id"].as<std::string>();
-        norm.body = norm_node["body"].as<std::vector<std::string>>();
-        norm.conclusion = norm_node["conclusion"].as<std::string>();
-        std::string type_str = norm_node["type"].as<std::string>();
-        if (type_str == "c" || type_str == "constitutive") {
-          norm.type = NormType::CONSTITUTIVE;
-        } else if (type_str == "r" || type_str == "regulative") {
-          norm.type = NormType::REGULATIVE;
-        } else if (type_str == "p" || type_str == "permissive") {
-          norm.type = NormType::PERMISSIVE;
-        } else {
-          RCLCPP_WARN(this->get_logger(), "Unknown norm type: %s",
-                      type_str.c_str());
-          norm.type = NormType::CONSTITUTIVE; // default
-        }
-        norm.stakeholder = norm_node["stakeholder"].as<std::string>();
-        norm.description = norm_node["description"].as<std::string>();
-        norms[norm.id] = norm;
-      }
-    }
+    parse_old_norms_section(config["norms"], norms);
 
-    // New format: separate "constitutive_norms", "regulative_norms", "permissions"
-    if (config["constitutive_norms"]) {
-      for (const auto &norm_node : config["constitutive_norms"]) {
-        Norm norm;
-        norm.id = norm_node["id"].as<std::string>();
-        norm.body = norm_node["body"].as<std::vector<std::string>>();
-        norm.conclusion = norm_node["conclusion"].as<std::string>();
-        norm.type = NormType::CONSTITUTIVE;
-        norm.stakeholder = norm_node["stakeholder"].as<std::string>();
-        norm.description = norm_node["description"].as<std::string>();
-        norms[norm.id] = norm;
-      }
-    }
-
-    if (config["regulative_norms"]) {
-      for (const auto &norm_node : config["regulative_norms"]) {
-        Norm norm;
-        norm.id = norm_node["id"].as<std::string>();
-        norm.body = norm_node["body"].as<std::vector<std::string>>();
-        norm.conclusion = norm_node["conclusion"].as<std::string>();
-        norm.type = NormType::REGULATIVE;
-        norm.stakeholder = norm_node["stakeholder"].as<std::string>();
-        norm.description = norm_node["description"].as<std::string>();
-        norms[norm.id] = norm;
-      }
-    }
-
-    if (config["permissions"]) {
-      for (const auto &norm_node : config["permissions"]) {
-        Norm norm;
-        norm.id = norm_node["id"].as<std::string>();
-        norm.body = norm_node["body"].as<std::vector<std::string>>();
-        norm.conclusion = norm_node["conclusion"].as<std::string>();
-        norm.type = NormType::PERMISSIVE;
-        norm.stakeholder = norm_node["stakeholder"].as<std::string>();
-        norm.description = norm_node["description"].as<std::string>();
-        norms[norm.id] = norm;
-      }
-    }
+    // New format: separate sections with implicit types
+    parse_norms_section(config["constitutive_norms"], norms,
+                        NormType::CONSTITUTIVE);
+    parse_norms_section(config["regulative_norms"], norms,
+                        NormType::REGULATIVE);
+    parse_norms_section(config["permissions"], norms, NormType::PERMISSIVE);
 
     // Parse contrariness
     std::map<std::string, Contrary> contraries;
@@ -258,47 +283,35 @@ JiminyNode::load_jiminy(const std::string &config_file) {
       }
     }
 
-    // Parse meta priorities (dynamic authority rules)
-    std::vector<MetaPriority> meta_priorities;
-    if (config["meta_priorities"]) {
-      for (const auto &mp_node : config["meta_priorities"]) {
-        MetaPriority mp;
-        mp.if_condition = mp_node["if"].as<std::string>();
-        mp.stakeholder = mp_node["stakeholder"].as<std::string>();
-        mp.value = mp_node["value"].as<int>();
-        mp.description = mp_node["description"].as<std::string>();
-        meta_priorities.push_back(mp);
-      }
-    }
-
-    // If priorities is empty but base_priorities exists, compute default priorities
-    // by assigning each conclusion the base priority of its supporting stakeholder
+    // If priorities is empty but base_priorities exists, compute default
+    // priorities by assigning each conclusion the base priority of its
+    // supporting stakeholder
     if (priorities.empty() && !base_priorities.empty()) {
       for (const auto &[norm_id, norm] : norms) {
-        int stakeholder_priority = base_priorities.count(norm.stakeholder) ?
-                                 base_priorities[norm.stakeholder] : 1;
+        int stakeholder_priority = base_priorities.count(norm.stakeholder)
+                                       ? base_priorities[norm.stakeholder]
+                                       : 1;
         if (priorities.count(norm.conclusion) == 0) {
-          priorities[norm.conclusion] = 
-            {norm.conclusion, stakeholder_priority, 
-             "Derived from stakeholder " + norm.stakeholder};
+          priorities[norm.conclusion] = {norm.conclusion, stakeholder_priority,
+                                         "Derived from stakeholder " +
+                                             norm.stakeholder};
         } else {
           // Keep the maximum priority if multiple norms support same conclusion
-          priorities[norm.conclusion].value = 
-            std::max(priorities[norm.conclusion].value, stakeholder_priority);
+          priorities[norm.conclusion].value =
+              std::max(priorities[norm.conclusion].value, stakeholder_priority);
         }
       }
     }
 
     return std::make_unique<Jiminy>(description, facts, norms, contraries,
-                                    priorities, base_priorities, meta_priorities);
+                                    priorities);
   } catch (const YAML::Exception &e) {
     RCLCPP_ERROR(this->get_logger(), "Failed to load YAML config: %s",
                  e.what());
     // Return empty Jiminy instance on error
     return std::make_unique<Jiminy>(
         "", std::map<std::string, Fact>{}, std::map<std::string, Norm>{},
-        std::map<std::string, Contrary>{}, std::map<std::string, Priority>{},
-        std::map<std::string, int>{}, std::vector<MetaPriority>{});
+        std::map<std::string, Contrary>{}, std::map<std::string, Priority>{});
   }
 }
 
@@ -425,11 +438,11 @@ void JiminyNode::get_scenario_service_callback(
 }
 
 void JiminyNode::load_scenario_service_callback(
-    const std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Request>
-        request,
+    const std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Request> request,
     std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Response> response) {
 
-  RCLCPP_INFO(this->get_logger(), "Received LoadScenario service request for: %s",
+  RCLCPP_INFO(this->get_logger(),
+              "Received LoadScenario service request for: %s",
               request->config_file.c_str());
 
   try {
@@ -481,33 +494,17 @@ void JiminyNode::load_scenario_service_callback(
       response->scenario.priorities.push_back(priority_msg);
     }
 
-    // Base Priorities
-    for (const auto &[stakeholder, value] :
-         this->jiminy_->get_base_priorities()) {
-      mini_jiminy_msgs::msg::BasePriority bp_msg;
-      bp_msg.stakeholder = stakeholder;
-      bp_msg.value = value;
-      response->scenario.base_priorities.push_back(bp_msg);
-    }
-
-    // Meta Priorities
-    for (const auto &mp : this->jiminy_->get_meta_priorities()) {
-      mini_jiminy_msgs::msg::MetaPriority mp_msg;
-      mp_msg.if_condition = mp.if_condition;
-      mp_msg.stakeholder = mp.stakeholder;
-      mp_msg.value = mp.value;
-      mp_msg.description = mp.description;
-      response->scenario.meta_priorities.push_back(mp_msg);
-    }
-
     response->success = true;
-    response->message = "Scenario loaded successfully from " + request->config_file;
-    RCLCPP_INFO(this->get_logger(), "LoadScenario service request processed successfully");
+    response->message =
+        "Scenario loaded successfully from " + request->config_file;
+    RCLCPP_INFO(this->get_logger(),
+                "LoadScenario service request processed successfully");
 
   } catch (const YAML::Exception &e) {
     response->success = false;
     response->message = std::string("YAML parsing error: ") + e.what();
     RCLCPP_ERROR(this->get_logger(), "%s", response->message.c_str());
+
   } catch (const std::exception &e) {
     response->success = false;
     response->message = std::string("Error: ") + e.what();
