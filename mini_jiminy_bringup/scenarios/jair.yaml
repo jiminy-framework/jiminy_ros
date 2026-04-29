@@ -1,0 +1,174 @@
+semantics: jiminy
+
+description: "Smart speaker scenario with GDPR vs threat detection — Jiminy-consistent version"
+
+# =========================================================
+# CONTEXT (Brute facts)
+# =========================================================
+
+context:
+
+  - id: w1
+    description: the manufacturer makes the smart speaker
+
+  - id: w2
+    description: the smart speaker collects user data
+
+  - id: w3
+    description: the data collected indicates a potential threat to society
+
+  - id: w4
+    description: the manufacturer is a registered company in Norway
+
+
+# =========================================================
+# BASE PRIORITIES (default stakeholder authority)
+# =========================================================
+
+base_priorities:
+
+  Law: 3
+  Household: 2
+  Manuf: 1
+
+
+# =========================================================
+# META PRIORITIES (context-dependent authority)
+# =========================================================
+
+meta_priorities:
+
+  - if: i_collects_data
+    stakeholder: Law
+    value: 4
+    description: data collection activates legal authority over manufacturer
+
+  - if: i_threat
+    stakeholder: Law
+    value: 5
+    description: threat detection escalates legal authority over all stakeholders
+
+  - if: i_no_threat
+    stakeholder: Household
+    value: 4
+    description: in absence of threat, household authority prevails over law
+
+
+# =========================================================
+# NORMS
+# =========================================================
+
+norms:
+
+# ---------------------------------------------------------
+# Constitutive norms (R^c)
+# ---------------------------------------------------------
+
+  - id: c1
+    body: [w4]
+    conclusion: i_registered
+    type: c
+    stakeholder: Manuf
+    description: being registered in Norway counts as legal business presence
+
+  - id: c2
+    body: [w2]
+    conclusion: i_collects_data
+    type: c
+    stakeholder: Law
+    description: data collection activates GDPR-relevant context
+
+  - id: c3
+    body: [w3]
+    conclusion: i_threat
+    type: c
+    stakeholder: Law
+    description: detected anomaly counts as potential societal threat
+
+  - id: c4
+    body: [i_collects_data]
+    conclusion: i_privacy_context
+    type: c
+    stakeholder: Household
+    description: data collection implies a privacy-sensitive context
+
+
+# ---------------------------------------------------------
+# Regulative norms (R^r)
+# ---------------------------------------------------------
+
+  - id: r1
+    body: [w1]
+    conclusion: d_compliant
+    type: r
+    stakeholder: Law
+    description: manufacturer must comply with applicable laws
+
+  - id: r2
+    body: [i_registered]
+    conclusion: d_gdpr
+    type: r
+    stakeholder: Law
+    description: companies operating in Norway must comply with GDPR
+
+  - id: r3
+    body: [i_collects_data]
+    conclusion: d_protect_privacy
+    type: r
+    stakeholder: Household
+    description: user data must be protected
+
+  - id: r4
+    body: [i_threat]
+    conclusion: d_report
+    type: r
+    stakeholder: Household
+    description: potential threats should be reported
+
+  - id: r5
+    body: [i_threat]
+    conclusion: d_collect_no_consent
+    type: r
+    stakeholder: Manuf
+    description: manufacturer may collect data without consent under threat
+
+
+# ---------------------------------------------------------
+# Permissions (R^p)
+# ---------------------------------------------------------
+
+# (none needed for this minimal scenario)
+
+
+# =========================================================
+# CONTRARIENESS (χ)
+# =========================================================
+
+contrariness:
+
+  d_gdpr:
+    opposes: [d_collect_no_consent]
+    description: GDPR compliance forbids data collection without consent
+
+  d_collect_no_consent:
+    opposes: [d_gdpr, d_protect_privacy]
+    description: collecting data without consent conflicts with privacy and GDPR
+
+  d_protect_privacy:
+    opposes: [d_collect_no_consent]
+    description: protecting privacy conflicts with unrestricted data collection
+
+  d_report:
+    opposes: [d_protect_privacy]
+    description: reporting a threat may conflict with strict privacy preservation
+
+  d_compliant:
+    opposes: [d_collect_no_consent]
+    description: legal compliance conflicts with unlawful data collection
+
+
+# =========================================================
+# PRIORITIES (unused in jiminy semantics but required)
+# =========================================================
+
+priorities: {}

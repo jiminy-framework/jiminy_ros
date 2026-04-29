@@ -10,9 +10,12 @@ Jiminy::Jiminy(const std::string &description,
                const std::map<std::string, Fact> &facts,
                const std::map<std::string, Norm> &norms,
                const std::map<std::string, Contrary> &contraries,
-               const std::map<std::string, Priority> &priorities)
+               const std::map<std::string, Priority> &priorities,
+               const std::map<std::string, int> &base_priorities,
+               const std::vector<MetaPriority> &meta_priorities)
     : description_(description), facts_(facts), norms_(norms),
-      contraries_(contraries), priorities_(priorities) {}
+      contraries_(contraries), priorities_(priorities),
+      base_priorities_(base_priorities), meta_priorities_(meta_priorities) {}
 
 /*********************************************************
  * Getters
@@ -512,4 +515,51 @@ std::string Jiminy::find_highest_priority(
     }
   }
   return best;
+}
+
+std::map<std::string, int> Jiminy::derive_stakeholder_priorities(
+    const std::unordered_set<std::string> &accepted_conclusions) const {
+  std::map<std::string, int> priorities;
+
+  // Initialize all stakeholders with base priorities
+  for (const auto &[stakeholder, base_value] : this->base_priorities_) {
+    priorities[stakeholder] = base_value;
+  }
+
+  // Apply meta-priority rules
+  for (const auto &rule : this->meta_priorities_) {
+    // Check if the trigger condition is in accepted conclusions
+    if (accepted_conclusions.count(rule.if_condition) > 0) {
+      // Update stakeholder priority (take max of current and rule value)
+      priorities[rule.stakeholder] = 
+        std::max(priorities.count(rule.stakeholder) ? 
+                 priorities[rule.stakeholder] : 1, 
+                 rule.value);
+    }
+  }
+
+  return priorities;
+}
+
+std::map<std::string, int> Jiminy::derive_conclusion_priorities(
+    const std::map<std::string, int> &stakeholder_priorities) const {
+  std::map<std::string, int> conclusion_priorities;
+
+  // For each norm, assign its conclusion the priority of its stakeholder
+  for (const auto &[norm_id, norm] : this->norms_) {
+    int stakeholder_priority = 1; // default
+    if (stakeholder_priorities.count(norm.stakeholder) > 0) {
+      stakeholder_priority = stakeholder_priorities.at(norm.stakeholder);
+    }
+    
+    // Set conclusion priority to stakeholder priority (take max if already set)
+    if (conclusion_priorities.count(norm.conclusion) == 0) {
+      conclusion_priorities[norm.conclusion] = stakeholder_priority;
+    } else {
+      conclusion_priorities[norm.conclusion] = 
+        std::max(conclusion_priorities[norm.conclusion], stakeholder_priority);
+    }
+  }
+
+  return conclusion_priorities;
 }

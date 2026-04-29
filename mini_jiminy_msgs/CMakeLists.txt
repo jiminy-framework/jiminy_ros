@@ -10,10 +10,14 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Norm.msg"
   "msg/Contrary.msg"
   "msg/Priority.msg"
+  "msg/BasePriority.msg"
+  "msg/MetaPriority.msg"
   "msg/Scenario.msg"
+  "msg/ScenarioFull.msg"
   "msg/Semantics.msg"
   "srv/CallJiminy.srv"
   "srv/GetScenario.srv"
+  "srv/LoadScenario.srv"
 )
 
 ament_package()

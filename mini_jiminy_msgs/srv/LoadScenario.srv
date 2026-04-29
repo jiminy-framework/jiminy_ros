@@ -1,0 +1,5 @@
+string config_file
+---
+bool success
+string message
+ScenarioFull scenario

@@ -65,6 +65,11 @@ JiminyNode::on_activate(const rclcpp_lifecycle::State &) {
           "get_scenario",
           std::bind(&JiminyNode::get_scenario_service_callback, this,
                     std::placeholders::_1, std::placeholders::_2));
+  this->load_scenario_service_ =
+      this->create_service<mini_jiminy_msgs::srv::LoadScenario>(
+          "load_scenario",
+          std::bind(&JiminyNode::load_scenario_service_callback, this,
+                    std::placeholders::_1, std::placeholders::_2));
 
   RCLCPP_INFO(this->get_logger(), "[%s] Activated", this->get_name());
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
@@ -78,6 +83,7 @@ JiminyNode::on_deactivate(const rclcpp_lifecycle::State &) {
   this->jiminy_.reset();
   this->jiminy_service_.reset();
   this->get_scenario_service_.reset();
+  this->load_scenario_service_.reset();
 
   RCLCPP_INFO(this->get_logger(), "[%s] Deactivated", this->get_name());
   return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::
@@ -180,15 +186,57 @@ JiminyNode::load_jiminy(const std::string &config_file) {
       }
     }
 
+    // Parse base priorities (stakeholder authority levels)
+    std::map<std::string, int> base_priorities;
+    if (config["base_priorities"]) {
+      for (const auto &bp_pair : config["base_priorities"]) {
+        std::string stakeholder = bp_pair.first.as<std::string>();
+        int value = bp_pair.second.as<int>();
+        base_priorities[stakeholder] = value;
+      }
+    }
+
+    // Parse meta priorities (dynamic authority rules)
+    std::vector<MetaPriority> meta_priorities;
+    if (config["meta_priorities"]) {
+      for (const auto &mp_node : config["meta_priorities"]) {
+        MetaPriority mp;
+        mp.if_condition = mp_node["if"].as<std::string>();
+        mp.stakeholder = mp_node["stakeholder"].as<std::string>();
+        mp.value = mp_node["value"].as<int>();
+        mp.description = mp_node["description"].as<std::string>();
+        meta_priorities.push_back(mp);
+      }
+    }
+
+    // If priorities is empty but base_priorities exists, compute default priorities
+    // by assigning each conclusion the base priority of its supporting stakeholder
+    if (priorities.empty() && !base_priorities.empty()) {
+      for (const auto &[norm_id, norm] : norms) {
+        int stakeholder_priority = base_priorities.count(norm.stakeholder) ?
+                                 base_priorities[norm.stakeholder] : 1;
+        if (priorities.count(norm.conclusion) == 0) {
+          priorities[norm.conclusion] = 
+            {norm.conclusion, stakeholder_priority, 
+             "Derived from stakeholder " + norm.stakeholder};
+        } else {
+          // Keep the maximum priority if multiple norms support same conclusion
+          priorities[norm.conclusion].value = 
+            std::max(priorities[norm.conclusion].value, stakeholder_priority);
+        }
+      }
+    }
+
     return std::make_unique<Jiminy>(description, facts, norms, contraries,
-                                    priorities);
+                                    priorities, base_priorities, meta_priorities);
   } catch (const YAML::Exception &e) {
     RCLCPP_ERROR(this->get_logger(), "Failed to load YAML config: %s",
                  e.what());
     // Return empty Jiminy instance on error
     return std::make_unique<Jiminy>(
         "", std::map<std::string, Fact>{}, std::map<std::string, Norm>{},
-        std::map<std::string, Contrary>{}, std::map<std::string, Priority>{});
+        std::map<std::string, Contrary>{}, std::map<std::string, Priority>{},
+        std::map<std::string, int>{}, std::vector<MetaPriority>{});
   }
 }
 
@@ -312,4 +360,95 @@ void JiminyNode::get_scenario_service_callback(
 
   RCLCPP_INFO(this->get_logger(),
               "GetScenario service request processed successfully");
+}
+
+void JiminyNode::load_scenario_service_callback(
+    const std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Request>
+        request,
+    std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Response> response) {
+
+  RCLCPP_INFO(this->get_logger(), "Received LoadScenario service request for: %s",
+              request->config_file.c_str());
+
+  try {
+    // Attempt to load the new scenario
+    auto new_jiminy = load_jiminy(request->config_file);
+
+    if (!new_jiminy) {
+      response->success = false;
+      response->message = "Failed to load Jiminy instance from file";
+      RCLCPP_ERROR(this->get_logger(), "%s", response->message.c_str());
+      return;
+    }
+
+    // Replace the current instance
+    this->jiminy_ = std::move(new_jiminy);
+    this->config_file_ = request->config_file;
+
+    // Populate response scenario
+    response->scenario.description = this->jiminy_->get_description();
+
+    // Facts
+    for (const auto &[id, fact] : this->jiminy_->get_facts()) {
+      mini_jiminy_msgs::msg::Fact fact_msg;
+      fact_msg.id = fact.id;
+      fact_msg.description = fact.description;
+      response->scenario.context.push_back(fact_msg);
+    }
+
+    // Norms
+    for (const auto &[id, norm] : this->jiminy_->get_norms()) {
+      response->scenario.norms.push_back(norm_to_msg(norm));
+    }
+
+    // Contraries
+    for (const auto &[id, contrary] : this->jiminy_->get_contraries()) {
+      mini_jiminy_msgs::msg::Contrary contrary_msg;
+      contrary_msg.id = contrary.id;
+      contrary_msg.contraries = contrary.contraries;
+      contrary_msg.description = contrary.description;
+      response->scenario.contraries.push_back(contrary_msg);
+    }
+
+    // Priorities
+    for (const auto &[id, priority] : this->jiminy_->get_priorities()) {
+      mini_jiminy_msgs::msg::Priority priority_msg;
+      priority_msg.id = priority.id;
+      priority_msg.value = priority.value;
+      priority_msg.description = priority.description;
+      response->scenario.priorities.push_back(priority_msg);
+    }
+
+    // Base Priorities
+    for (const auto &[stakeholder, value] :
+         this->jiminy_->get_base_priorities()) {
+      mini_jiminy_msgs::msg::BasePriority bp_msg;
+      bp_msg.stakeholder = stakeholder;
+      bp_msg.value = value;
+      response->scenario.base_priorities.push_back(bp_msg);
+    }
+
+    // Meta Priorities
+    for (const auto &mp : this->jiminy_->get_meta_priorities()) {
+      mini_jiminy_msgs::msg::MetaPriority mp_msg;
+      mp_msg.if_condition = mp.if_condition;
+      mp_msg.stakeholder = mp.stakeholder;
+      mp_msg.value = mp.value;
+      mp_msg.description = mp.description;
+      response->scenario.meta_priorities.push_back(mp_msg);
+    }
+
+    response->success = true;
+    response->message = "Scenario loaded successfully from " + request->config_file;
+    RCLCPP_INFO(this->get_logger(), "LoadScenario service request processed successfully");
+
+  } catch (const YAML::Exception &e) {
+    response->success = false;
+    response->message = std::string("YAML parsing error: ") + e.what();
+    RCLCPP_ERROR(this->get_logger(), "%s", response->message.c_str());
+  } catch (const std::exception &e) {
+    response->success = false;
+    response->message = std::string("Error: ") + e.what();
+    RCLCPP_ERROR(this->get_logger(), "%s", response->message.c_str());
+  }
 }

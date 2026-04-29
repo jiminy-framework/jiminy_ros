@@ -72,6 +72,17 @@ struct Priority {
 };
 
 /**
+ * @struct MetaPriority
+ * @brief Structure representing dynamic priority rules based on context facts.
+ */
+struct MetaPriority {
+  std::string if_condition;  // fact that triggers this rule
+  std::string stakeholder;
+  int value;
+  std::string description;
+};
+
+/**
  * @class Jiminy
  * @brief Main class for managing facts, norms, contraries, and priorities.
  */
@@ -79,16 +90,21 @@ class Jiminy {
 public:
   /**
    * @brief Constructor for the Jiminy class.
+   * @param description The description of the scenario.
    * @param facts A map of fact identifiers to Fact structures.
    * @param norms A map of norm identifiers to Norm structures.
    * @param contraries A map of contrary identifiers to Contrary structures.
    * @param priorities A map of priority identifiers to Priority structures.
+   * @param base_priorities A map of stakeholder identifiers to base priority values.
+   * @param meta_priorities A vector of MetaPriority rules for dynamic priority adjustment.
    */
   Jiminy(const std::string &description,
          const std::map<std::string, Fact> &facts,
          const std::map<std::string, Norm> &norms,
          const std::map<std::string, Contrary> &contraries,
-         const std::map<std::string, Priority> &priorities);
+         const std::map<std::string, Priority> &priorities,
+         const std::map<std::string, int> &base_priorities = {},
+         const std::vector<MetaPriority> &meta_priorities = {});
 
   /**
    * @brief Retrieve the description of the Jiminy instance.
@@ -145,6 +161,22 @@ public:
    */
   const std::map<std::string, Priority> &get_priorities() const {
     return this->priorities_;
+  }
+
+  /**
+   * @brief Retrieve all base priorities managed by Jiminy.
+   * @return A const reference to a map of stakeholder identifiers to base priority values.
+   */
+  const std::map<std::string, int> &get_base_priorities() const {
+    return this->base_priorities_;
+  }
+
+  /**
+   * @brief Retrieve all meta priorities managed by Jiminy.
+   * @return A const reference to a vector of MetaPriority structures.
+   */
+  const std::vector<MetaPriority> &get_meta_priorities() const {
+    return this->meta_priorities_;
   }
 
   /**
@@ -310,9 +342,26 @@ private:
   /**
    * @brief Retrieve the priority value for a given identifier.
    * @param id The identifier for which to get the priority value.
+   * @param accepted_conclusions Optional set of accepted conclusions for dynamic priority computation.
    * @return The priority value associated with the identifier.
    */
   int get_priority_value(const std::string &id) const;
+
+  /**
+   * @brief Derive stakeholder priorities based on base and meta-priorities.
+   * @param accepted_conclusions Set of accepted conclusion identifiers.
+   * @return A map of stakeholder identifiers to computed priority values.
+   */
+  std::map<std::string, int>
+  derive_stakeholder_priorities(const std::unordered_set<std::string> &accepted_conclusions) const;
+
+  /**
+   * @brief Derive conclusion-level priorities from stakeholder priorities.
+   * @param stakeholder_priorities A map of stakeholder identifiers to priority values.
+   * @return A map of conclusion identifiers to computed priority values.
+   */
+  std::map<std::string, int>
+  derive_conclusion_priorities(const std::map<std::string, int> &stakeholder_priorities) const;
 
   /**
    * @brief Get the keys of norms that attack a given target norm.
@@ -362,6 +411,10 @@ private:
   std::map<std::string, Contrary> contraries_;
   /// @brief Map of priority identifiers to Priority structures.
   std::map<std::string, Priority> priorities_;
+  /// @brief Map of stakeholder identifiers to base priority values.
+  std::map<std::string, int> base_priorities_;
+  /// @brief Vector of meta-priority rules for dynamic priority adjustment.
+  std::vector<MetaPriority> meta_priorities_;
 };
 
 } // namespace mini_jiminy

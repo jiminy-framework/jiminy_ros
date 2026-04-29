@@ -8,6 +8,7 @@
 #include "mini_jiminy/mini_jiminy.hpp"
 #include "mini_jiminy_msgs/srv/call_jiminy.hpp"
 #include "mini_jiminy_msgs/srv/get_scenario.hpp"
+#include "mini_jiminy_msgs/srv/load_scenario.hpp"
 
 namespace mini_jiminy {
 
@@ -104,6 +105,16 @@ private:
           request,
       std::shared_ptr<mini_jiminy_msgs::srv::GetScenario::Response> response);
 
+  /**
+   * @brief Callback function for the LoadScenario service.
+   * @param request The service request containing the config file path.
+   * @param response The service response with the loaded scenario.
+   */
+  void load_scenario_service_callback(
+      const std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Request>
+          request,
+      std::shared_ptr<mini_jiminy_msgs::srv::LoadScenario::Response> response);
+
   /// @brief Unique pointer to the Jiminy instance.
   std::unique_ptr<Jiminy> jiminy_;
   /// @brief Configuration file path.
@@ -115,6 +126,9 @@ private:
   /// @brief Service for retrieving the scenario.
   std::shared_ptr<rclcpp::Service<mini_jiminy_msgs::srv::GetScenario>>
       get_scenario_service_;
+  /// @brief Service for loading a new scenario from file.
+  std::shared_ptr<rclcpp::Service<mini_jiminy_msgs::srv::LoadScenario>>
+      load_scenario_service_;
 };
 
 } // namespace mini_jiminy
