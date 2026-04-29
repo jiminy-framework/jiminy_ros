@@ -90,7 +90,7 @@ colcon build
 
 ## Backwards Compatibility
 
-✅ **Fully backwards compatible**
+ **Fully backwards compatible**
 - Scenarios with explicit static `priorities` declarations continue to work unchanged
 - The auto-computation only triggers when `priorities` is empty AND `base_priorities` is non-empty
 - If both are empty, the system behaves as before

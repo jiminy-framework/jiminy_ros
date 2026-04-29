@@ -64,7 +64,7 @@ normas:
 
 ---
 
-## ⚙️ Running an Example
+##  Running an Example
 
 ```bash
 ros2 launch mini_jiminy_bringup mini_jiminy.launch.py
@@ -87,7 +87,7 @@ The engine prints:
 
 ---
 
-## 🔄 Runtime YAML Configuration (Dynamic Scenario Loading)
+##  Runtime YAML Configuration (Dynamic Scenario Loading)
 
 ### Overview
 
@@ -362,14 +362,14 @@ Planned future developments:
 
 ##  Current Features
 
-- ✔ Norm detachment  
-- ✔ Institutional, regulative, and permissive norms  
-- ✔ Dung-style attack relation  
-- ✔ Priority-based defeat resolution  
-- ✔ Human-readable explanations  
-- ✔ YAML-based scenarios  
-- ✔ Graph visualization (NetworkX)  
-- ✔ Clean Python API  
+-  Norm detachment  
+-  Institutional, regulative, and permissive norms  
+-  Dung-style attack relation  
+-  Priority-based defeat resolution  
+-  Human-readable explanations  
+-  YAML-based scenarios  
+-  Graph visualization (NetworkX)  
+-  Clean Python API  
 
 ---
 

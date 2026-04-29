@@ -7,7 +7,7 @@ description: "Unified candy scenario — works for before and after lunch."
 # Facts are selected at runtime with --facts
 #
 # BEFORE lunch →  w1 w3 w4 w5
-# AFTER  lunch →  w1 w2 w3 w4
+# AFTER  lunch →  w1 w2 w4 w5
 #
 # The norms below remain unchanged; only brute facts vary.
 
@@ -17,15 +17,20 @@ context:
 
   - id: w2
     description: "Lunch has already finished."
-
+  
   - id: w3
-    description: "There is no physical risk for the child."
+    description: "It is right before lunchtime."
 
   - id: w4
-    description: "The child is calm and emotionally stable."
+    description: "There is no physical risk for the child."
 
   - id: w5
-    description: "It is right before lunchtime."
+    description: "The child is calm and emotionally stable."
+
+  - id: w6
+    description: "The child is nervous and emotionally unstable."
+
+
 
 
 # ========================================================================
@@ -39,7 +44,7 @@ norms:
 
   # BEFORE lunch → rule violation
   - id: H1_before
-    body: ["w1", "w5"]
+    body: ["w1", "w3"]
     conclusion: "i_before"
     type: "c"
     stakeholder: "Household"
@@ -74,6 +79,31 @@ norms:
     type: "p"
     stakeholder: "Household"
     description: "Gentle informing is acceptable if the child is emotionally stable."
+
+  # ------------------------------------------------------
+  # EMOTIONAL STATE — NERVOUS CHILD
+  # ------------------------------------------------------
+
+  - id: E1
+    body: ["w6"]
+    conclusion: "i_nervous"
+    type: "c"
+    stakeholder: "Care"
+    description: "The child is emotionally unstable."
+
+  - id: E2
+    body: ["i_nervous"]
+    conclusion: "d_no_intervene"
+    type: "p"
+    stakeholder: "Care"
+    description: "When the child is nervous, direct intervention should be avoided."
+
+  - id: E3
+    body: ["i_nervous"]
+    conclusion: "d_observe"
+    type: "p"
+    stakeholder: "Care"
+    description: "The robot should prioritize observation and emotional stabilization."
 
 
   # ------------------------------------------------------
@@ -120,12 +150,12 @@ norms:
 contrariness:
 
   d1:
-    description: "Reminding conflicts with flexibility or non-intervention."
-    contraries: ["d2", "d3", "p_no_intervene"]
+    description: "Reminding conflicts with flexibility,  emotional stabilization  or non-intervention."
+    contraries: ["d2", "d3", "p_no_intervene", "d_no_intervene", "d_observe"]
 
   p_no_intervene:
     description: "Preference for non-intervention after lunch conflicts with reminding."
-    contraries: ["d1"]
+    contraries: ["d1","d2"]
 
   d2:
     description: "Flexibility contradicts reminding."
@@ -142,6 +172,16 @@ contrariness:
   d5:
     description: "Legal permission is neutral."
     contraries: []
+
+  d_no_intervene:
+    description: "Avoiding intervention conflicts with reminding."
+    contraries: ["d1", "d2"]
+
+  d_observe:
+    description: "Observation conflicts with direct intervention."
+    contraries: ["d1"]
+
+
 
 
 # ========================================================================
@@ -172,3 +212,12 @@ priorities:
   d5:
     value: 1
     description: "Legal permission has small weight."
+
+  d_no_intervene:
+    value: 5
+    description: "Emotional safety is the highest priority when the child is nervous."
+
+  d_observe:
+    value: 4
+    description: "Observation is preferred over intervention in unstable emotional states."
+

@@ -131,8 +131,10 @@ JiminyNode::load_jiminy(const std::string &config_file) {
       }
     }
 
-    // Parse norms
+    // Parse norms (support multiple formats)
     std::map<std::string, Norm> norms;
+    
+    // Old format: "norms" section with type field
     if (config["norms"]) {
       for (const auto &norm_node : config["norms"]) {
         Norm norm;
@@ -157,6 +159,46 @@ JiminyNode::load_jiminy(const std::string &config_file) {
       }
     }
 
+    // New format: separate "constitutive_norms", "regulative_norms", "permissions"
+    if (config["constitutive_norms"]) {
+      for (const auto &norm_node : config["constitutive_norms"]) {
+        Norm norm;
+        norm.id = norm_node["id"].as<std::string>();
+        norm.body = norm_node["body"].as<std::vector<std::string>>();
+        norm.conclusion = norm_node["conclusion"].as<std::string>();
+        norm.type = NormType::CONSTITUTIVE;
+        norm.stakeholder = norm_node["stakeholder"].as<std::string>();
+        norm.description = norm_node["description"].as<std::string>();
+        norms[norm.id] = norm;
+      }
+    }
+
+    if (config["regulative_norms"]) {
+      for (const auto &norm_node : config["regulative_norms"]) {
+        Norm norm;
+        norm.id = norm_node["id"].as<std::string>();
+        norm.body = norm_node["body"].as<std::vector<std::string>>();
+        norm.conclusion = norm_node["conclusion"].as<std::string>();
+        norm.type = NormType::REGULATIVE;
+        norm.stakeholder = norm_node["stakeholder"].as<std::string>();
+        norm.description = norm_node["description"].as<std::string>();
+        norms[norm.id] = norm;
+      }
+    }
+
+    if (config["permissions"]) {
+      for (const auto &norm_node : config["permissions"]) {
+        Norm norm;
+        norm.id = norm_node["id"].as<std::string>();
+        norm.body = norm_node["body"].as<std::vector<std::string>>();
+        norm.conclusion = norm_node["conclusion"].as<std::string>();
+        norm.type = NormType::PERMISSIVE;
+        norm.stakeholder = norm_node["stakeholder"].as<std::string>();
+        norm.description = norm_node["description"].as<std::string>();
+        norms[norm.id] = norm;
+      }
+    }
+
     // Parse contrariness
     std::map<std::string, Contrary> contraries;
     if (config["contrariness"]) {
@@ -165,9 +207,20 @@ JiminyNode::load_jiminy(const std::string &config_file) {
         const auto &contrary_node = contrary_pair.second;
         Contrary contrary;
         contrary.id = id;
-        contrary.contraries =
-            contrary_node["opposes"].as<std::vector<std::string>>();
-        contrary.description = contrary_node["description"].as<std::string>();
+        // Support both "opposes" and "contraries" keys for compatibility
+        if (contrary_node["opposes"]) {
+          contrary.contraries =
+              contrary_node["opposes"].as<std::vector<std::string>>();
+        } else if (contrary_node["contraries"]) {
+          contrary.contraries =
+              contrary_node["contraries"].as<std::vector<std::string>>();
+        }
+        // Handle optional description field
+        if (contrary_node["description"]) {
+          contrary.description = contrary_node["description"].as<std::string>();
+        } else {
+          contrary.description = "";
+        }
         contraries[id] = contrary;
       }
     }
@@ -180,8 +233,17 @@ JiminyNode::load_jiminy(const std::string &config_file) {
         const auto &priority_node = priority_pair.second;
         Priority priority;
         priority.id = id;
-        priority.value = priority_node["value"].as<int>();
-        priority.description = priority_node["description"].as<std::string>();
+        // Handle optional value and description fields
+        if (priority_node["value"]) {
+          priority.value = priority_node["value"].as<int>();
+        } else {
+          priority.value = 0;
+        }
+        if (priority_node["description"]) {
+          priority.description = priority_node["description"].as<std::string>();
+        } else {
+          priority.description = "";
+        }
         priorities[id] = priority;
       }
     }

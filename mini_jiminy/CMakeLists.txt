@@ -62,7 +62,9 @@ install(TARGETS
 # Testing
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_pytest REQUIRED)
 
+  # C++ Tests
   # Test for Jiminy class
   ament_add_gtest(test_jiminy
     test/test_jiminy.cpp
@@ -74,6 +76,21 @@ if(BUILD_TESTING)
     test/test_jiminy_node.cpp
   )
   target_link_libraries(test_jiminy_node ${PROJECT_NAME}_lib)
+
+  # Python Integration Tests
+  # Load scenario service tests
+  ament_add_pytest_test(test_load_scenario_service
+    ../test/integration/test_load_scenario_service.py
+    TIMEOUT 120
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
+  )
+
+  # Jiminy reasoning service tests  
+  ament_add_pytest_test(test_jiminy_reasoning
+    ../test/integration/test_jiminy_reasoning.py
+    TIMEOUT 120
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
+  )
 endif()
 
 ament_package()
