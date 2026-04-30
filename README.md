@@ -368,6 +368,161 @@ See the detailed documentation files:
 
 ---
 
+## Jiminy Terminal — Interactive Command-Line Interface
+
+The **Jiminy Terminal** is an interactive command-line interface for the Jiminy ROS node. It provides a convenient REPL (Read-Eval-Print Loop) with tab-completion for exploring scenarios, loading configurations, and invoking the reasoning engine — all from a single terminal session.
+
+### Starting the Terminal
+
+First, start the Jiminy node (as usual):
+
+```bash
+ros2 launch jiminy_bringup jiminy.launch.py
+```
+
+Then, in a separate terminal, launch the Jiminy Terminal:
+
+```bash
+ros2 run jiminy_terminal jiminy_terminal
+```
+
+You will see the interactive prompt:
+
+```
+jiminy>
+```
+
+### Available Commands
+
+| Command | Description |
+|---|---|
+| `help` | Display help and available commands |
+| `load <file>` | Load a scenario from a YAML file |
+| `get-scenario` | Display the currently loaded scenario |
+| `call <semantics> [facts...]` | Run the reasoning engine with a given semantics and optional facts |
+| `quit` / `exit` | Exit the terminal |
+
+### Tab Completion
+
+Press **TAB** at any time for autocompletion:
+
+- **Command completion**: typing `lo` + TAB completes to `load`.
+- **File path completion**: after `load `, TAB completes file and directory paths (including `~` expansion).
+- **Semantics completion**: after `call `, TAB suggests `grounded`, `preferred`, `stable`, `priority`.
+- **Fact ID completion**: after `call grounded `, TAB suggests available fact IDs from the loaded scenario.
+
+### Interactive Session Example
+
+```
+jiminy> get-scenario 
+Fetching current scenario...
+=== Current Scenario ===
+Description: Unified candy scenario — works for before and after lunch.
+
+Context (6):
+  - w1: The child is eating candy.
+  - w2: Lunch has already finished.
+  - w3: It is right before lunchtime.
+  - w4: There is no physical risk for the child.
+  - w5: The child is calm and emotionally stable.
+  - w6: The child is nervous and emotionally unstable.
+
+Norms (12):
+  - [E1] (constitutive): conclusion=i_nervous, stakeholder=Care
+    The child is emotionally unstable.
+  - [E2] (permissive): conclusion=d_no_intervene, stakeholder=Care
+    When the child is nervous, direct intervention should be avoided.
+  - [E3] (permissive): conclusion=d_observe, stakeholder=Care
+    The robot should prioritize observation and emotional stabilization.
+  - [H1_after] (constitutive): conclusion=i_after, stakeholder=Household
+    Eating candy after lunch counts as allowed.
+  - [H1_before] (constitutive): conclusion=i_before, stakeholder=Household
+    Eating candy right before lunch counts as violating household rules.
+  - [H2_after] (permissive): conclusion=p_no_intervene, stakeholder=Household
+    If candy consumption is allowed, non-intervention is preferred.
+  - [H2_before] (regulative): conclusion=d1, stakeholder=Household
+    Remind the child not to eat candy before meals.
+  - [H_soft] (permissive): conclusion=d2, stakeholder=Household
+    Gentle informing is acceptable if the child is emotionally stable.
+  - [L1] (permissive): conclusion=d5, stakeholder=Law
+    No legal restriction applies to candy consumption.
+  - [M1] (permissive): conclusion=d3, stakeholder=Mfg
+    Robot should avoid intervening unless there is risk.
+  - [M2] (constitutive): conclusion=i_soft, stakeholder=Mfg
+    Robot adopts soft mode when the child is calm.
+  - [M3] (permissive): conclusion=d4, stakeholder=Mfg
+    Soft mode allows gentle monitoring.
+
+Contraries (8):
+  - d1: [d2, d3, p_no_intervene, d_no_intervene, d_observe]
+  - d2: [d1]
+  - d3: [d1]
+  - d4: []
+  - d5: []
+  - d_no_intervene: [d1, d2]
+  - d_observe: [d1]
+  - p_no_intervene: [d1, d2]
+
+Priorities (8):
+  - d1: value=4 (Household strongly values rule compliance (before lunch).)
+  - d2: value=2 (Gentle informing has low normative weight.)
+  - d3: value=3 (Manufacturer prioritizes non-intervention.)
+  - d4: value=5 (Soft mode is highly preferred across contexts.)
+  - d5: value=1 (Legal permission has small weight.)
+  - d_no_intervene: value=5 (Emotional safety is the highest priority when the child is nervous.)
+  - d_observe: value=4 (Observation is preferred over intervention in unstable emotional states.)
+  - p_no_intervene: value=3 (When allowed, non-intervention is preferred by the household.)
+
+jiminy> call preferred w1 w3
+Calling Jiminy with semantics: preferred, facts: [w1, w3]...
+Call successful!
+Message: Jiminy processing completed successfully.
+
+========================================
+  Accepted norms (4):
+========================================
+  [ACCEPTED] H2_before (regulative)
+    Conclusion:   d1
+    Stakeholder:  Household
+    Body:         [i_before]
+    Description:  Remind the child not to eat candy before meals.
+
+  [ACCEPTED] M1 (permissive)
+    Conclusion:   d3
+    Stakeholder:  Mfg
+    Body:         [w3]
+    Description:  Robot should avoid intervening unless there is risk.
+
+  [ACCEPTED] L1 (permissive)
+    Conclusion:   d5
+    Stakeholder:  Law
+    Body:         [w1]
+    Description:  No legal restriction applies to candy consumption.
+
+  [ACCEPTED] H1_before (constitutive)
+    Conclusion:   i_before
+    Stakeholder:  Household
+    Body:         [w1, w3]
+    Description:  Eating candy right before lunch counts as violating household rules.
+
+========================================
+  Rejected norms (0):
+========================================
+----------------------------------------
+Summary: 4 accepted, 0 rejected
+----------------------------------------
+
+jiminy> quit
+```
+
+### Tips
+
+- **Switch scenarios on the fly**: use `load` to switch between scenarios without restarting the Jiminy node.
+- **Inspect before calling**: run `get-scenario` to see available fact IDs before constructing a `call` command.
+- **Use TAB aggressively**: the completion system knows about semantics, fact IDs, and file paths — press TAB to explore options at each step.
+
+---
+
 ## Theoretical Basis
 
 Jiminy Advisor implements the following reasoning steps:
